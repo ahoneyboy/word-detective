@@ -69,6 +69,20 @@ mark{background:#FFE9A8;color:inherit;border-radius:3px;padding:0 2px}
   border-radius:12px;color:var(--text-sub);white-space:nowrap;font-weight:600}
 .tab:hover{color:var(--brand-deep)}
 .tab.active{background:var(--brand-light);color:var(--brand-deep)}
+/* 移动端：标签栏移到屏幕底部（仿 App 导航），避免顶部溢出 */
+@media(max-width:700px){
+  body{-webkit-tap-highlight-color:transparent}
+  .topbar{padding:8px 12px;gap:8px}
+  .brand{font-size:17px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:100;margin-left:0;gap:0;
+    background:var(--card);border-top:1px solid var(--line);overflow:visible;
+    padding:4px 0 calc(4px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+  .tab{flex:1;flex-direction:column;gap:1px;justify-content:center;min-height:50px;
+    font-size:12px;padding:4px 0 0;border-radius:0}
+  .tab.active{background:transparent}
+  main{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+}
 /* ============================================================
    视图切换（淡入 + 8px 上移，250ms）
    ============================================================ */
@@ -164,8 +178,8 @@ mark{background:#FFE9A8;color:inherit;border-radius:3px;padding:0 2px}
 .vs-word{text-align:center}
 .vs-word .w{font-size:34px;font-weight:800}
 .vs-word .py{font-size:14px;letter-spacing:2px;color:var(--text-sub)}
-.ct-table{width:100%;border-collapse:collapse;margin:12px 0}
-.ct-table th,.ct-table td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+.ct-table{width:100%;border-collapse:collapse;margin:12px 0;table-layout:fixed}
+.ct-table th,.ct-table td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top;word-break:break-word}
 .ct-table th{background:var(--bg);font-size:14px;color:var(--text-sub);white-space:nowrap;width:88px}
 .ct-table td{min-width:0}
 .same-banner{background:var(--info-light);color:var(--info);border-radius:12px;padding:12px 16px;margin:12px 0;font-weight:600}
@@ -344,16 +358,33 @@ mark{background:#FFE9A8;color:inherit;border-radius:3px;padding:0 2px}
 /* ============================================================
    响应式：≥900px 左右分栏；<900px 上下堆叠；375px 无横向滚动
    ============================================================ */
+#search-detail{scroll-margin-top:64px}
 @media(max-width:899px){
-  .search-layout{grid-template-columns:1fr}
+  .search-layout{grid-template-columns:1fr;gap:12px}
   .d-word{font-size:28px}
+  #search-results{max-height:46vh;overflow:auto}
+}
+@media(max-width:480px){
+  .view-title{font-size:20px}
+  .card{padding:14px}
+  .q-prompt{font-size:19px}
+  .optgrid{gap:8px}
+  .opt{font-size:18px;min-height:56px}
+  .modal{padding:18px}
+  .ct-table th{width:64px;font-size:13px;padding:8px 6px}
+  .ct-table td{font-size:14px;padding:8px 6px}
+  .vs-select{flex-direction:column}
+  .vs-mid{width:100%;justify-content:center}
+  .statgrid{gap:8px}
+  .stat .num{font-size:18px}
+  .searchbar{padding:6px 12px}
 }
 @media(max-width:375px){
-  #app{padding:0 12px 40px}
-  .card{padding:16px}
+  #app{padding:0 10px 40px}
+  .card{padding:12px}
   .d-word{font-size:26px}
   .vs-word .w{font-size:26px}
-  .brand{font-size:18px}
+  .brand{font-size:16px}
 }
 </style>
 </head>
@@ -5009,6 +5040,13 @@ function openWord(word,fromEntry){
   bumpHistory("searched");bumpTotals({searched:1});pushRecent(e.id);
   checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
   showDetail(e,true);
+  /* 手机端：打开词条后滚到详情卡，避免被结果列表占屏 */
+  if(window.matchMedia&&window.matchMedia("(max-width:899px)").matches){
+    setTimeout(function(){
+      const d=document.querySelector("#search-detail");
+      if(d&&d.scrollIntoView)d.scrollIntoView({behavior:"smooth",block:"start"});
+    },80);
+  }
 }
 function renderNotFound(word,fromEntry){
   const detail=$("#search-detail");detail.textContent="";
@@ -5226,14 +5264,16 @@ function renderContrast(){
   wrap.appendChild(el("div","view-title","⚖️ 近义词辨析"));
   const sel=el("div","card vs-select");
   sel.appendChild(pickerSlot("A",function(){return S.contrast.a;},function(e){S.contrast.a=e;}));
-  sel.appendChild(el("div","vs-badge","VS"));
-  sel.appendChild(pickerSlot("B",function(){return S.contrast.b;},function(e){S.contrast.b=e;}));
+  const mid=el("div","vs-mid");
+  mid.appendChild(el("div","vs-badge","VS"));
   const swapBtn=el("button","btn btn-plain btn-small","⇄ 交换 A/B");
   swapBtn.type="button";
   swapBtn.addEventListener("click",function(){
     const t=S.contrast.a;S.contrast.a=S.contrast.b;S.contrast.b=t;renderContrast();
   });
-  sel.appendChild(swapBtn);
+  mid.appendChild(swapBtn);
+  sel.appendChild(mid);
+  sel.appendChild(pickerSlot("B",function(){return S.contrast.b;},function(e){S.contrast.b=e;}));
   wrap.appendChild(sel);
   const rec=el("div","chiprow");
   rec.style.marginBottom="14px";

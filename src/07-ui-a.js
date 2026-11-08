@@ -223,6 +223,13 @@ function openWord(word,fromEntry){
   bumpHistory("searched");bumpTotals({searched:1});pushRecent(e.id);
   checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
   showDetail(e,true);
+  /* 手机端：打开词条后滚到详情卡，避免被结果列表占屏 */
+  if(window.matchMedia&&window.matchMedia("(max-width:899px)").matches){
+    setTimeout(function(){
+      const d=document.querySelector("#search-detail");
+      if(d&&d.scrollIntoView)d.scrollIntoView({behavior:"smooth",block:"start"});
+    },80);
+  }
 }
 function renderNotFound(word,fromEntry){
   const detail=$("#search-detail");detail.textContent="";
@@ -440,14 +447,16 @@ function renderContrast(){
   wrap.appendChild(el("div","view-title","⚖️ 近义词辨析"));
   const sel=el("div","card vs-select");
   sel.appendChild(pickerSlot("A",function(){return S.contrast.a;},function(e){S.contrast.a=e;}));
-  sel.appendChild(el("div","vs-badge","VS"));
-  sel.appendChild(pickerSlot("B",function(){return S.contrast.b;},function(e){S.contrast.b=e;}));
+  const mid=el("div","vs-mid");
+  mid.appendChild(el("div","vs-badge","VS"));
   const swapBtn=el("button","btn btn-plain btn-small","⇄ 交换 A/B");
   swapBtn.type="button";
   swapBtn.addEventListener("click",function(){
     const t=S.contrast.a;S.contrast.a=S.contrast.b;S.contrast.b=t;renderContrast();
   });
-  sel.appendChild(swapBtn);
+  mid.appendChild(swapBtn);
+  sel.appendChild(mid);
+  sel.appendChild(pickerSlot("B",function(){return S.contrast.b;},function(e){S.contrast.b=e;}));
   wrap.appendChild(sel);
   const rec=el("div","chiprow");
   rec.style.marginBottom="14px";
