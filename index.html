@@ -1,0 +1,4640 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2784B">
+<meta name="description" content="词语小侦探：近义词·反义词学习软件，会辨析、能训练、有反馈。纯本地离线运行。">
+<title>词语小侦探 · 近义词反义词训练器</title>
+<style>
+/* ============================================================
+   设计变量（P7：全站统一引用，禁止散落硬编码色值）
+   ============================================================ */
+:root{
+  --brand:#F2784B;            /* 暖橙：进度、强调、边框 */
+  --brand-strong:#C9481A;     /* 深橙：主按钮实底（保证白字对比度 ≥4.5:1） */
+  --brand-deep:#A2431F;       /* 橙棕：浅橙底上的文字 */
+  --brand-light:#FDEBE3;
+  --info:#4A9BD1;             /* 天蓝：链接、次级 */
+  --info-light:#E3F1FA;
+  --success:#3FA96B;
+  --success-light:#E4F4EA;  --ok-text:#1F6B44;
+  --danger:#D9534F;
+  --danger-light:#FAE7E6;   --no-text:#A33633;
+  --warn-bg:#FFF6E5; --warn-line:#F0E2BC; --warn-text:#7A5A16;
+  --neutral-bg:#EFECE8; --neutral-text:#6B655F;
+  --bg:#FDF8F3;               /* 米白底 */
+  --card:#FFFFFF;
+  --text:#2E2A27;             /* 对比度 ≥7:1 */
+  --text-sub:#7A736D;         /* ≥4.5:1 */
+  --line:#EDE5DC;
+  --shadow:0 2px 12px rgba(0,0,0,.06);
+  --radius:16px;
+}
+[data-theme="dark"]{
+  --brand:#F28A5F; --brand-strong:#C9481A; --brand-deep:#FFB899; --brand-light:#3B2A21;
+  --info:#5FA8D8; --info-light:#20303C;
+  --success:#4CB67C; --success-light:#203328; --ok-text:#8FD4AE;
+  --danger:#E06A66; --danger-light:#3D2625; --no-text:#F0A9A6;
+  --warn-bg:#3A3220; --warn-line:#55482A; --warn-text:#E8D9A8;
+  --neutral-bg:#332F2B; --neutral-text:#A89F96;
+  --bg:#1E1B18; --card:#2A2622; --text:#F0EAE3; --text-sub:#A89F96; --line:#3A342E;
+  --shadow:0 2px 12px rgba(0,0,0,.35);
+}
+/* ============================================================
+   基础排版（正文 ≥17px，行高 1.7，儿童阅读优先）
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  font-size:17px;line-height:1.7;color:var(--text);background:var(--bg);min-height:100vh;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font:inherit;color:inherit}
+a{color:var(--info);text-decoration:none}
+ul,ol{list-style:none}
+mark{background:#FFE9A8;color:inherit;border-radius:3px;padding:0 2px}
+[data-theme="dark"] mark{background:#5C4A1E;color:#F5E9C8}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+#app{max-width:1080px;margin:0 auto;padding:0 16px 48px}
+/* ============================================================
+   顶栏与 Tab 导航（图标必须配文字）
+   ============================================================ */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;
+  padding:10px 4px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:20px;white-space:nowrap}
+.tabs{display:flex;gap:4px;margin-left:auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{display:flex;align-items:center;gap:5px;padding:8px 12px;min-height:44px;
+  border-radius:12px;color:var(--text-sub);white-space:nowrap;font-weight:600}
+.tab:hover{color:var(--brand-deep)}
+.tab.active{background:var(--brand-light);color:var(--brand-deep)}
+/* ============================================================
+   视图切换（淡入 + 8px 上移，250ms）
+   ============================================================ */
+.view{display:none;padding-top:16px}
+.view.active{display:block;animation:fadeUp .25s ease-out}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view-title{font-size:22px;font-weight:800;margin:4px 0 14px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.muted{color:var(--text-sub);font-size:14px}
+.foot{text-align:center;color:var(--text-sub);font-size:13px;padding:24px 0 8px}
+/* ============================================================
+   按钮体系（高 ≥44px，按下 scale(.97) 120ms）
+   ============================================================ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;
+  padding:8px 18px;border-radius:12px;font-weight:700;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--brand-strong);color:#fff}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-ghost{border:2px solid var(--brand);color:var(--brand-deep);background:transparent}
+.btn-plain{border:1px solid var(--line);color:var(--text-sub);background:var(--card)}
+.btn-small{min-height:38px;padding:4px 12px;font-size:14px;border-radius:10px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+/* ============================================================
+   查词视图
+   ============================================================ */
+.searchbar{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:var(--radius);
+  background:var(--card);box-shadow:var(--shadow);margin-bottom:16px}
+.searchbar input{flex:1;border:none;outline:none;background:transparent;font-size:18px;
+  min-height:44px;color:var(--text);min-width:0}
+.search-layout{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+#search-results{padding:8px}
+.result-item{display:block;width:100%;text-align:left;padding:10px 12px;min-height:52px;border-radius:12px}
+.result-item:hover,.result-item.sel{background:var(--brand-light)}
+.result-line1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.result-word{font-weight:700;font-size:18px}
+.result-py{color:var(--text-sub);font-size:14px;letter-spacing:1px}
+.result-syn{display:block;color:var(--text-sub);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more-hint{padding:10px 12px;color:var(--text-sub);font-size:14px}
+/* 详情卡 */
+.backlink{display:inline-flex;align-items:center;gap:6px;color:var(--info);min-height:44px;font-weight:600}
+.d-top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.d-word{font-size:34px;font-weight:800;line-height:1.3}
+.d-py{font-size:14px;letter-spacing:2px;color:var(--text-sub);margin-top:2px}
+.star-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 12px;
+  border-radius:12px;color:var(--text-sub);font-weight:600;margin-left:auto}
+.star-btn.on{color:var(--brand-deep)}
+.star-btn.on .star-ico{display:inline-block;animation:starPop .2s}
+@keyframes starPop{50%{transform:scale(1.3)}}
+.d-meta{display:flex;gap:8px;align-items:center;margin:8px 0 4px;flex-wrap:wrap}
+.meta-chip{font-size:13px;color:var(--text-sub);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.tagpill{font-size:13px;font-weight:600;border-radius:999px;padding:2px 12px}
+.tagpill.biao{background:var(--success-light);color:var(--ok-text)}
+.tagpill.zhong{background:var(--neutral-bg);color:var(--neutral-text)}
+.tagpill.bian{background:var(--danger-light);color:var(--no-text)}
+.d-def{font-size:19px;margin:12px 0;padding:10px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+.sec-title{font-size:16px;font-weight:700;color:var(--text-sub);margin:14px 0 8px;letter-spacing:1px}
+.pillrow{display:flex;flex-direction:column;gap:8px}
+.pillitem{display:flex;flex-direction:column;align-items:flex-start;text-align:left;
+  background:var(--brand-light);border-radius:12px;padding:8px 14px;min-height:44px}
+.pillitem:hover{filter:brightness(1.02)}
+.pillitem.ant{background:var(--info-light)}
+.pill-word{font-weight:700;color:var(--brand-deep);font-size:17px}
+.pillitem.ant .pill-word{color:var(--info)}
+.pill-diff{font-size:14px;color:var(--text-sub);line-height:1.6}
+.ex-list li{margin:6px 0}
+.ex-num{color:var(--brand);font-weight:700;margin-right:6px}
+.confuse-box{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:12px;
+  padding:10px 14px;margin-top:14px;color:var(--warn-text)}
+.next-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.empty{padding:28px 12px;text-align:center;color:var(--text-sub)}
+.empty .big{font-size:40px;margin-bottom:8px}
+.reco-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:8px 16px;min-height:44px;
+  background:var(--bg);font-weight:600}
+.chip:hover{border-color:var(--brand);color:var(--brand-deep)}
+.chip.on{background:var(--brand-light);border-color:var(--brand);color:var(--brand-deep)}
+.daily-box{text-align:center;padding:8px 0}
+.daily-box .d-word{cursor:pointer}
+/* ============================================================
+   辨析视图
+   ============================================================ */
+.vs-select{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;position:relative}
+.picker{position:relative;flex:1;min-width:140px}
+.picker input{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--card);
+  padding:8px 12px;min-height:44px;outline:none}
+.picker input:focus{border-color:var(--brand)}
+.picker-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:60;background:var(--card);
+  border-radius:12px;box-shadow:var(--shadow);padding:6px;max-height:260px;overflow:auto}
+.picker-list button{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:8px;min-height:40px}
+.picker-list button:hover{background:var(--brand-light)}
+.vs-badge{font-weight:800;color:var(--brand);font-size:18px;padding:0 2px}
+.vs-head{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+.vs-word{text-align:center}
+.vs-word .w{font-size:34px;font-weight:800}
+.vs-word .py{font-size:14px;letter-spacing:2px;color:var(--text-sub)}
+.ct-table{width:100%;border-collapse:collapse;margin:12px 0}
+.ct-table th,.ct-table td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+.ct-table th{background:var(--bg);font-size:14px;color:var(--text-sub);white-space:nowrap;width:88px}
+.ct-table td{min-width:0}
+.same-banner{background:var(--info-light);color:var(--info);border-radius:12px;padding:12px 16px;margin:12px 0;font-weight:600}
+.scene-box{background:var(--bg);border-radius:12px;padding:12px 16px;margin-top:12px}
+.scene-ctx{font-size:14px;color:var(--text-sub);margin-bottom:6px}
+.scene-line{margin:6px 0}
+.scene-conclusion{margin-top:8px;color:var(--text-sub);font-size:15px}
+/* ============================================================
+   闯关视图
+   ============================================================ */
+.quiz-wrap{max-width:760px;margin:0 auto}
+.quiz-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.qprog{flex:1;min-width:120px;height:10px;background:var(--line);border-radius:999px;overflow:hidden}
+.qprog-fill{height:100%;background:var(--brand);border-radius:999px;transition:width .3s}
+.qcombo{font-weight:700;color:var(--brand-deep)}
+.qcombo.hot{animation:comboPop .4s}
+@keyframes comboPop{50%{transform:scale(1.15)}}
+.q-prompt{font-size:22px;font-weight:700;text-align:center;margin:18px 0 6px}
+.q-sentence{background:var(--bg);border-radius:12px;padding:12px 16px;text-align:center;margin:10px 0;font-size:18px}
+.optgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+@media(max-width:700px){.optgrid{grid-template-columns:repeat(2,1fr)}}
+.opt{position:relative;min-height:64px;border:2px solid var(--line);border-radius:14px;background:var(--card);
+  font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:8px;transition:border-color .15s}
+.opt:not(:disabled):hover{border-color:var(--brand)}
+.opt.ok{border-color:var(--success);background:var(--success-light);color:var(--ok-text);animation:popOk .3s;transform:translateY(-2px)}
+.opt.bad{border-color:var(--danger);background:var(--danger-light);color:var(--no-text);animation:shake .4s}
+.opt.reveal{border-color:var(--success);background:var(--success-light);color:var(--ok-text)}
+.opt.dim{opacity:.45}
+.opt .ansmark{position:absolute;top:-12px;right:-6px;background:var(--ok-text);color:#fff;font-size:12px;
+  padding:2px 8px;border-radius:999px;white-space:nowrap}
+@keyframes popOk{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1) translateY(-2px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.fb{border-radius:12px;padding:12px 16px;margin-top:6px}
+.fb-ok{background:var(--success-light);color:var(--ok-text)}
+.fb-no{background:var(--danger-light);color:var(--no-text)}
+.fb-title{font-weight:700}
+.fb-body{margin-top:4px;font-size:15px}
+.next-row-center{display:flex;justify-content:center;margin-top:14px}
+.settle{text-align:center}
+.stars{font-size:40px;letter-spacing:6px;margin:10px 0}
+.score-line{font-size:18px;color:var(--text-sub)}
+.wrong-list{text-align:left;margin:16px auto;max-width:560px}
+.wrong-list li{background:var(--bg);border-radius:10px;padding:8px 12px;margin:6px 0;font-size:15px}
+.settle-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.mode-row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 16px}
+/* 填写作答 / 自动学习 */
+.fill-row{display:flex;gap:10px;justify-content:center;margin:14px 0 6px;flex-wrap:wrap}
+.fill-row.locked{opacity:.75}
+.fill-input{width:100%;max-width:420px;border:2px solid var(--line);border-radius:14px;
+  padding:10px 14px;font-size:20px;text-align:center;min-height:52px;
+  background:var(--card);color:var(--text)}
+.fill-input:focus{border-color:var(--brand);outline:none}
+.fill-input:disabled{opacity:.6}
+.auto-word{text-align:center;margin:14px 0 4px}
+.auto-word .d-word{font-size:44px;cursor:default}
+.auto-answer{margin-top:14px;background:var(--bg);border-radius:12px;padding:12px 16px;
+  opacity:0;transform:translateY(6px);transition:all .4s;text-align:left}
+.auto-answer.revealed{opacity:1;transform:none}
+.auto-controls{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+/* ============================================================
+   词库浏览视图
+   ============================================================ */
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filter-row select{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:8px 12px;min-height:44px}
+.browse-layout{display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:16px;align-items:start}
+.letter-nav{position:sticky;top:70px;display:flex;flex-direction:column;gap:1px;background:var(--card);
+  border-radius:12px;padding:6px 4px;box-shadow:var(--shadow);max-height:calc(100vh - 96px);overflow:auto}
+.letter-nav button{width:100%;min-height:40px;font-size:13px;font-weight:700;color:var(--text-sub);border-radius:8px}
+.letter-nav button:hover{color:var(--brand-deep);background:var(--brand-light)}
+.letter-head{font-size:20px;font-weight:800;color:var(--brand-deep);margin:18px 0 4px;scroll-margin-top:80px}
+.wrow{display:flex;align-items:center;gap:10px;padding:8px 6px;min-height:52px;
+  border-bottom:1px dashed var(--line);width:100%;text-align:left;border-radius:8px}
+.wrow:hover{background:var(--brand-light)}
+.wrow .w{font-weight:700;font-size:18px;min-width:4.5em}
+.wrow .py{color:var(--text-sub);font-size:14px;letter-spacing:1px;min-width:7.5em}
+.wrow .def{color:var(--text-sub);font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){
+  .browse-layout{grid-template-columns:minmax(0,1fr)}
+  .browse-layout>.card{min-width:0}
+  .letter-nav{position:static;flex-direction:row;flex-wrap:wrap;max-height:none}
+  .letter-nav button{width:auto;min-width:36px;padding:0 6px}
+}
+/* ============================================================
+   我的视图
+   ============================================================ */
+.me-wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.statgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:700px){.statgrid{grid-template-columns:repeat(3,1fr)}}
+.stat{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}
+.stat .num{font-size:22px;font-weight:800;color:var(--brand-deep)}
+.stat .lbl{font-size:12px;color:var(--text-sub)}
+.cal{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-top:10px}
+@media(max-width:700px){.cal{grid-template-columns:repeat(10,1fr)}}
+.cal-cell{aspect-ratio:1;border-radius:4px;background:var(--line);min-width:0}
+.cal-cell.on{background:var(--brand)}
+.cal-cell.today{outline:2px solid var(--info);outline-offset:1px}
+.list-row{display:flex;align-items:center;gap:10px;padding:10px 4px;min-height:52px;
+  border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.list-row:last-child{border-bottom:none}
+.list-row .w{font-weight:700;font-size:18px;cursor:pointer}
+.list-row .py{color:var(--text-sub);font-size:14px;letter-spacing:1px}
+.list-row .grow{flex:1;min-width:0}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:10px}
+.badge{background:var(--bg);border-radius:12px;padding:12px 8px;text-align:center}
+.badge.locked{opacity:.45;filter:grayscale(1)}
+.badge .bi{font-size:26px}
+.badge .bn{font-weight:700;font-size:14px}
+.badge .bd{font-size:12px;color:var(--text-sub);line-height:1.5}
+.report-box{background:var(--bg);border-radius:12px;padding:14px 16px;line-height:1.9;margin-top:10px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 0;border-bottom:1px dashed var(--line)}
+.switch-row:last-child{border-bottom:none}
+.switch{width:52px;height:30px;border-radius:999px;background:var(--line);position:relative;
+  transition:background .2s;flex:none;min-width:52px;min-height:30px}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+  background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on{background:var(--success)}
+.switch.on::after{left:25px}
+.ktag{font-size:12px;border-radius:999px;padding:1px 8px;background:var(--info-light);color:var(--info);font-weight:600}
+/* ============================================================
+   弹层：Toast / Modal / 闪卡
+   ============================================================ */
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+  background:#2E2A27;color:#FFF7EE;padding:10px 20px;border-radius:999px;opacity:0;
+  pointer-events:none;transition:all .25s;z-index:200;font-size:15px;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-overlay{position:fixed;inset:0;background:rgba(30,25,20,.55);display:flex;
+  align-items:center;justify-content:center;z-index:150;padding:16px}
+.modal{background:var(--card);border-radius:var(--radius);max-width:460px;width:100%;
+  padding:24px;animation:fadeUp .25s ease-out;max-height:86vh;overflow:auto}
+.modal h3{font-size:20px;margin-bottom:10px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin:14px 0}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.ob-dot.on{background:var(--brand)}
+.ob-ico{font-size:44px;text-align:center}
+.ob-t{text-align:center;font-size:22px;font-weight:800;margin:6px 0}
+.ob-d{text-align:center;color:var(--text-sub)}
+.fc{perspective:900px;height:260px;cursor:pointer;margin:12px 0}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.fc.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  border-radius:var(--radius);background:var(--bg);padding:16px;text-align:center;overflow:auto}
+.fc-back{transform:rotateY(180deg)}
+.fc-word{font-size:40px;font-weight:800}
+.fc-hint{color:var(--text-sub);font-size:14px}
+/* ============================================================
+   动效节制：尊重系统"减少动态效果"设置
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+/* ============================================================
+   词卡打印（A4 一页 8 张，2 列 × 4 行，虚线裁剪）
+   ============================================================ */
+#print-layer{display:none}
+@media print{
+  #app,.toast,.modal-overlay{display:none!important}
+  html,body{background:#fff}
+  body{font-size:12pt}
+  #print-layer{display:block;color:#000;font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+  .print-page{display:grid;grid-template-columns:88mm 88mm;gap:3mm;justify-content:center;page-break-after:always}
+  .print-page:last-child{page-break-after:auto}
+  .print-card{width:88mm;height:60mm;border:1px dashed #888;padding:5mm 6mm;
+    break-inside:avoid;page-break-inside:avoid;overflow:hidden;position:relative}
+  .pc-word{font-size:22pt;font-weight:700;line-height:1.2}
+  .pc-py{font-size:10pt;letter-spacing:2px;color:#333}
+  .pc-line{font-size:10.5pt;margin-top:1.5mm;line-height:1.5}
+  .pc-ex{margin-top:1.5mm;font-size:10pt;color:#222;line-height:1.5}
+  .pc-corner{position:absolute;right:4mm;bottom:3mm;font-size:8pt;color:#999}
+  @page{margin:12mm}
+}
+/* ============================================================
+   响应式：≥900px 左右分栏；<900px 上下堆叠；375px 无横向滚动
+   ============================================================ */
+@media(max-width:899px){
+  .search-layout{grid-template-columns:1fr}
+  .d-word{font-size:28px}
+}
+@media(max-width:375px){
+  #app{padding:0 12px 40px}
+  .card{padding:16px}
+  .d-word{font-size:26px}
+  .vs-word .w{font-size:26px}
+  .brand{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand">🔍 词语小侦探</div>
+    <nav class="tabs" aria-label="主导航">
+      <a class="tab" data-v="search" href="#/search">🔎<span>查词</span></a>
+      <a class="tab" data-v="contrast" href="#/contrast">⚖️<span>辨析</span></a>
+      <a class="tab" data-v="quiz" href="#/quiz">🎯<span>闯关</span></a>
+      <a class="tab" data-v="browse" href="#/browse">📚<span>词库</span></a>
+      <a class="tab" data-v="me" href="#/me">🏠<span>我的</span></a>
+    </nav>
+  </header>
+  <main>
+    <section id="view-search" class="view" aria-label="查词">
+      <div class="searchbar">
+        <span aria-hidden="true">🔍</span>
+        <input id="search-input" type="search" placeholder="输入词语、拼音（gaoxing）或首字母（gx）…"
+               autocomplete="off" spellcheck="false" aria-label="搜索词语">
+      </div>
+      <div class="search-layout">
+        <div id="search-results" class="card" aria-label="搜索结果"></div>
+        <div id="search-detail" class="card" aria-live="polite"></div>
+      </div>
+    </section>
+    <section id="view-contrast" class="view" aria-label="辨析"></section>
+    <section id="view-quiz" class="view" aria-label="闯关"></section>
+    <section id="view-browse" class="view" aria-label="词库"></section>
+    <section id="view-me" class="view" aria-label="我的"></section>
+  </main>
+  <footer class="foot">词语小侦探 · 纯本地离线运行 · 学习数据只保存在这台设备上</footer>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modal-root"></div>
+<div id="print-layer" aria-hidden="true"></div>
+<script>
+
+/* =====================================================================
+ * 一、词库数据（必须内联：file:// 协议下 fetch 会被 CORS 拦截导致白屏）
+ * 说明：为避免手抄出错，pinyin_plain / initials / id 由 W() 工厂从
+ * 带调拼音统一推导，推导结果直接写入词条对象（比手抄更不易错）。
+ * ===================================================================== */
+function stripTones(s){
+  return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+}
+const WORD_DB=[];
+function W(word,py,pos,grade,color,def,ex,syn,ant,tags,confuse,contrast){
+  const syl=py.trim().split(/\s+/);
+  const plain=syl.map(stripTones).join("");
+  const split=t=>{const i=String(t).indexOf("|");
+    return i<0?{word:t,diff:"与主词意思相近。"}:{word:String(t).slice(0,i),diff:String(t).slice(i+1)};};
+  /* 感情色彩规范为全称（褒→褒义 / 中→中性 / 贬→贬义） */
+  const colorFull={"褒":"褒义","中":"中性","贬":"贬义"}[color]||color;
+  const e={
+    id:plain, word:word, pinyin:py.trim(), pinyin_plain:plain,
+    initials:syl.map(s=>stripTones(s).charAt(0)).join(""),
+    pos:pos, grade:grade, color:colorFull, definition:def,
+    examples:ex.slice(0,2),
+    synonyms:(syn||[]).map(split),
+    antonyms:(ant||[]).map(split),
+    tags:tags, confuse:confuse||"", contrast:contrast||[]
+  };
+  WORD_DB.push(e);
+  return e;
+}
+
+/* ---------- 情绪与心情 ---------- */
+W("高兴","gāo xìng","形容词",3,"褒","心里感到快乐、舒畅。",
+ ["今天考了满分，他特别高兴。","妈妈高兴地说：你终于学会骑车了！"],
+ ["愉快|更书面一些，多形容心情持续的状态，比如心情愉快。","开心|更口语，常说玩得开心、开心极了。","兴奋|强调情绪被激发、坐不住，不能用来形容平静的快乐。"],
+ ["难过|心里不痛快，和高兴直接相反。","伤心|程度比难过重，多因为失去或受了委屈。"],
+ ["情绪","心情"],"高兴不等于兴奋：兴奋更像激动得停不下来。",["愉快","兴奋"]);
+W("愉快","yú kuài","形容词",4,"褒","心里轻松舒畅，没有烦恼。",
+ ["周末全家去野餐，大家心情很愉快。","他愉快地接受了这个任务。"],
+ ["高兴|更口语更常用。","快乐|多形容整体的生活状态。"],
+ ["忧愁|心里发愁，高兴不起来。"],
+ ["情绪","心情"],"愉快比高兴更书面，作文里写心情愉快会显得更文气。",["高兴"]);
+W("快乐","kuài lè","形容词",2,"褒","感到幸福和满足。",
+ ["六一儿童节，我们过得很快乐。","帮助别人是一件快乐的事。"],
+ ["高兴|多指一时的情绪。","愉快|更书面一些。"],
+ ["痛苦|心里非常难受。"],
+ ["情绪","心情"],"",[ "幸福"]);
+W("开心","kāi xīn","形容词",3,"褒","心情好，痛快。",
+ ["和小伙伴一起做游戏，大家玩得很开心。","听到这个好消息，他开心地笑了。"],
+ ["高兴|更常用于正式一点的场合。","快乐|可以形容长期的状态。"],
+ ["难过|心里不痛快。"],
+ ["情绪","心情"],"",[ "高兴"]);
+W("欢喜","huān xǐ","形容词",4,"褒","喜欢而高兴，心里乐滋滋的。",
+ ["爷爷满心欢喜地接过孙子画的画。","她欢喜地看着新书包。"],
+ ["高兴|更常用。","喜欢|是动词，指对事物有好感。"],
+ ["悲伤|心里哀痛难过。"],
+ ["情绪"],"欢喜多和满心、皆大欢喜搭配，口语里单独用得少。",["高兴"]);
+W("兴奋","xīng fèn","形容词",5,"中","情绪高涨，激动得静不下来。",
+ ["明天要去春游，他兴奋得睡不着觉。","比赛赢了，大家兴奋地欢呼起来。"],
+ ["激动|多指心情受到触动。","高兴|指平静的快乐，兴奋程度更强。"],
+ ["平静|心情安稳，不起波澜。"],
+ ["情绪","心情"],"兴奋是因为刺激而情绪高涨，形容考了满分后的平静喜悦要用高兴。",["高兴","激动"]);
+W("激动","jī dòng","形容词",4,"中","感情受到触动，心潮起伏。",
+ ["拿到录取通知书，他激动得说不出话。","见到久别的奶奶，我心里很激动。"],
+ ["兴奋|更强调坐不住、停不下来。"],
+ ["平静|心情安稳。","冷静|不冲动，能思考。"],
+ ["情绪"],"激动是心里起了波澜，冷静正好相反。",["兴奋"]);
+W("难过","nán guò","形容词",3,"中","心里不痛快、不好受。",
+ ["小狗走丢了，他难过得哭了。","没被选上班干部，她有点难过。"],
+ ["伤心|程度更深，常带流泪。","难受|更口语，身体或心里不舒服都能用。"],
+ ["高兴|心里快乐舒畅。","快乐|感到幸福满足。"],
+ ["情绪","心情"],"难过和伤心都指不痛快，伤心更重一些。",["伤心"]);
+W("伤心","shāng xīn","形容词",3,"中","心里非常痛苦，常常想哭。",
+ ["心爱的风筝坏了，他伤心极了。","别让妈妈为你伤心。"],
+ ["难过|程度轻一些。","悲伤|更重，多指大的不幸。"],
+ ["高兴|心里快乐舒畅。","快乐|感到幸福满足。"],
+ ["情绪","心情"],"",["难过"]);
+W("悲伤","bēi shāng","形容词",5,"中","心里哀痛难过。",
+ ["听了这个故事，大家都露出悲伤的神情。","他悲伤地望着空空的鸟笼。"],
+ ["伤心|更口语常用。","悲痛|程度最重。"],
+ ["高兴|心里快乐舒畅。","喜悦|高兴而愉快。"],
+ ["情绪"],"",[ "伤心"]);
+W("喜悦","xǐ yuè","形容词",6,"褒","高兴，愉快的心情。",
+ ["丰收的喜悦写在每个人的脸上。","他怀着喜悦的心情报名参加了合唱团。"],
+ ["高兴|更口语。","愉快|多形容持续的心情。"],
+ ["悲伤|心里哀痛难过。"],
+ ["情绪","心情"],"喜悦偏书面，常用搭配：喜悦的心情、丰收的喜悦。",["高兴"]);
+W("痛苦","tòng kǔ","形容词",5,"中","身体或心里非常难受。",
+ ["牙齿疼得他十分痛苦。","失去朋友的滋味是痛苦的。"],
+ ["悲伤|多指心里的哀痛。"],
+ ["快乐|心里感到幸福满足。","幸福|生活称心美好。"],
+ ["情绪","心情"],"",[ "悲伤"]);
+W("幸福","xìng fú","形容词",3,"褒","生活称心，心里满足美好。",
+ ["一家人围坐吃饭，他觉得特别幸福。","帮助别人，自己也会感到幸福。"],
+ ["快乐|多指一时的情绪，幸福多指长久的状态。"],
+ ["痛苦|身体或心里非常难受。"],
+ ["情绪","生活"],"",[ "快乐"]);
+W("着急","zháo jí","形容词",3,"中","心里急躁，沉不住气。",
+ ["眼看要迟到了，他很着急。","妈妈生病住院，爸爸十分着急。"],
+ ["焦急|程度更重，心里像着了火。","心急|更口语。"],
+ ["镇定|遇事不慌，能稳住。"],
+ ["情绪"],"着急的着读 zháo，不读 zhe。",["焦急"]);
+W("焦急","jiāo jí","形容词",6,"中","心里着急，像被火烤一样。",
+ ["弟弟走丢了，妈妈焦急地四处寻找。","成绩还没出来，他等得焦急万分。"],
+ ["着急|更口语常用。"],
+ ["镇定|遇事不慌。"],
+ ["情绪"],"",[ "着急"]);
+W("担心","dān xīn","动词",3,"中","心里放不下，怕出问题。",
+ ["天黑了，妈妈担心我在路上的安全。","别担心，办法总比困难多。"],
+ ["担忧|更书面。","忧虑|程度重，带着忧愁。"],
+ ["放心|心里安稳，不再挂念。"],
+ ["情绪","心情"],"",[ "放心"]);
+W("放心","fàng xīn","动词",3,"中","心里踏实，不再牵挂。",
+ ["看到大家都平安到家，老师才放了心。","你放心去吧，这里有我呢。"],
+ ["安心|心里安稳踏实。"],
+ ["担心|心里放不下。"],
+ ["情绪","心情"],"",[ "担心","安心"]);
+W("安心","ān xīn","动词",4,"褒","心情安定，没有牵挂。",
+ ["病床上的爷爷终于能安心睡觉了。","安心学习，别惦记家里的事。"],
+ ["放心|多指不再担忧某件事。"],
+ ["担心|心里放不下。"],
+ ["情绪"],"",[ "放心"]);
+W("害怕","hài pà","动词",3,"中","心里恐惧，不敢面对。",
+ ["第一次上台发言，他有点害怕。","勇敢的人不是不害怕，而是不退缩。"],
+ ["恐惧|程度重，更书面。","畏惧|多指敬畏着害怕。"],
+ ["无畏|一点儿都不怕。"],
+ ["情绪"],"",[ "恐惧"]);
+W("恐惧","kǒng jù","形容词",6,"中","非常害怕，心里发慌。",
+ ["黑暗中奇怪的叫声让他心生恐惧。","他恐惧地缩在墙角，不敢出声。"],
+ ["害怕|更口语常用。","畏惧|带着敬畏的怕。"],
+ ["无畏|什么都不怕。"],
+ ["情绪"],"恐惧程度重，写怕黑、怕考试这类小事用害怕就够。",["害怕"]);
+W("生气","shēng qì","动词",3,"中","因不满而心里恼火。",
+ ["弟弟弄坏了我的钢笔，我很生气。","老师批评他时并没有生气。"],
+ ["愤怒|程度重得多，像火在烧。","恼火|又恼又气。"],
+ ["高兴|心里快乐舒畅。"],
+ ["情绪"],"",[ "愤怒"]);
+W("愤怒","fèn nù","形容词",6,"中","非常生气，怒火很大。",
+ ["看到有人欺负小同学，他愤怒地瞪大了眼睛。","大家愤怒地谴责浪费粮食的行为。"],
+ ["生气|程度轻，日常多用。","恼怒|又恼又气。"],
+ [],
+ ["情绪"],"愤怒程度很重，小事用生气就够，别动不动就愤怒。",["生气"]);
+W("恼火","nǎo huǒ","形容词",5,"中","又恼又气，心里烦。",
+ ["作业本被人撕破了，他十分恼火。","妹妹总打断我讲话，我有点恼火。"],
+ ["生气|更常用。","愤怒|程度更重。"],
+ [],
+ ["情绪"],"",[ "生气"]);
+W("失望","shī wàng","形容词",4,"中","希望落了空，心里不痛快。",
+ ["没能入选合唱团，她失望地低下了头。","看着空空的鱼缸，小猫失望地走开了。"],
+ ["灰心|遇到挫折失去信心。","绝望|希望完全断绝，程度最重。"],
+ ["满意|符合心愿，称心。"],
+ ["情绪","心情"],"",[ "满意"]);
+W("满意","mǎn yì","形容词",3,"褒","符合自己的心愿，觉得好。",
+ ["老师看着工整的作业，满意地点点头。","这幅画得到了大家满意的评价。"],
+ ["满足|觉得够了，不再想要更多。"],
+ ["失望|希望落了空。"],
+ ["心情"],"满意是称心，满足是够了不再贪多。",["满足"]);
+W("满足","mǎn zú","动词",5,"褒","觉得够了，不再有别的奢求。",
+ ["小猫晒着太阳，一脸满足的样子。","他不满足于已有的成绩，继续刻苦练习。"],
+ ["满意|多指对人或事的结果认可。"],
+ [],
+ ["心情"],"我很满意这幅画可以说，我很满足这幅画不通。",["满意"]);
+W("惊讶","jīng yà","形容词",5,"中","感到很奇怪、出乎意料。",
+ ["他这么小就会修电脑，大家都十分惊讶。","她惊讶地睁大了眼睛。"],
+ ["吃惊|更口语。","惊奇|又惊又奇，带点好奇。"],
+ [],
+ ["情绪","神态"],"",[ "吃惊"]);
+W("吃惊","chī jīng","动词",4,"中","心里一震，没想到。",
+ ["他一口气跑完了五圈，真让人吃惊。","听到这个消息，妈妈吃惊地放下了筷子。"],
+ ["惊讶|更书面。"],
+ [],
+ ["情绪","神态"],"",[ "惊讶"]);
+W("紧张","jǐn zhāng","形容词",4,"中","心里发慌，放不开。",
+ ["第一次比赛，他紧张得手心冒汗。","考试前深呼吸，能让自己不那么紧张。"],
+ ["慌张|指举动慌乱，紧张多指心情。"],
+ ["放松|不再紧绷，轻松下来。","从容|不慌不忙。"],
+ ["情绪"],"紧张还可以形容供应不足，比如水电紧张。",["放松"]);
+W("放松","fàng sōng","动词",4,"中","由紧变松，不再用力。",
+ ["考试前听听音乐，放松一下心情。","跑步后不要立刻坐下，先放松双腿。"],
+ ["松懈|该努力的劲头松了下来，带贬义。"],
+ ["紧张|心里发慌或绷得紧。"],
+ ["动作","生活"],"",[ "紧张"]);
+W("从容","cóng róng","形容词",6,"褒","不慌不忙，稳稳当当。",
+ ["面对提问，他从容地一一作答。","她从容地走上领奖台。"],
+ ["镇定|遇事稳得住。","沉着|冷静不慌。"],
+ ["慌张|心里发慌，手忙脚乱。"],
+ ["神态","性格"],"",[ "镇定","沉着"]);
+W("镇定","zhèn dìng","形容词",6,"褒","遇到紧急情况不慌乱。",
+ ["火灾演练时，大家都很镇定。","他镇定地拨通了急救电话。"],
+ ["沉着|更强调冷静思考。","冷静|能静下心分析。"],
+ ["慌张|心里发慌。","惊慌|害怕慌乱。"],
+ ["性格","神态"],"两词常可互换，沉着应战是固定搭配。",["沉着","冷静"]);
+W("沉着","chén zhuó","形容词",6,"褒","遇事冷静，不慌不忙。",
+ ["船长沉着地指挥大家逃生。","比赛落后时，他依然沉着应战。"],
+ ["镇定|意思相近，常互换。","冷静|多指思考的状态。"],
+ ["慌张|心里发慌，动作忙乱。"],
+ ["性格"],"",[ "镇定"]);
+W("冷静","lěng jìng","形容词",5,"褒","静下心来，不冲动。",
+ ["遇到矛盾先冷静下来，再想办法解决。","他冷静地分析了失败的原因。"],
+ ["镇定|遇事稳得住。","沉着|冷静不慌。"],
+ ["冲动|没想清楚就行动。"],
+ ["性格"],"",[ "镇定","沉着"]);
+W("慌张","huāng zhāng","形容词",5,"中","心里发慌，动作忙乱。",
+ ["第一次独自在家，他有点慌张。","别慌张，一步一步来。"],
+ ["惊慌|程度更重。","紧张|多指心情。"],
+ ["镇定|遇事不慌。","从容|不慌不忙。"],
+ ["神态"],"",[ "惊慌","镇定"]);
+W("惊慌","jīng huāng","形容词",5,"中","害怕慌乱，不知怎么办。",
+ ["突然停电，教室里响起惊慌的叫声。","消防员提醒大家：不要惊慌。"],
+ ["慌张|程度轻些。"],
+ ["镇定|不慌乱。","沉着|冷静不慌。"],
+ ["神态"],"",[ "慌张"]);
+W("寂寞","jì mò","形容词",5,"中","冷清孤单，心里空落落的。",
+ ["爸爸妈妈出差了，他一个人在家很寂寞。","老人养了只小狗作伴，不再寂寞。"],
+ ["孤独|更书面，强调独自一人。","孤单|单独一人，无人陪伴。"],
+ ["热闹|人多，气氛活跃。"],
+ ["心情"],"寂寞是心里的空落落，热闹是场面上的活跃。",["孤独","孤单"]);
+W("孤独","gū dú","形容词",6,"中","独自一人，得不到陪伴。",
+ ["老橡树孤独地立在村口。","他不喜欢凑热闹，常常一个人安静地看书。"],
+ ["寂寞|偏重心里空落落。","孤单|偏重身边没人。"],
+ ["热闹|人多，气氛活跃。"],
+ ["心情"],"",[ "寂寞","孤单"]);
+W("孤单","gū dān","形容词",4,"中","单独一个人，觉得冷清。",
+ ["住校第一晚，他有点孤单。","大雁排成队往南飞，谁也不孤单。"],
+ ["孤独|更书面。","寂寞|偏重心里的感觉。"],
+ ["热闹|人多，气氛活跃。"],
+ ["心情"],"",[ "孤独","寂寞"]);
+W("自豪","zì háo","形容词",5,"褒","为自己或集体感到光荣。",
+ ["捧回奖杯，队员们个个自豪。","我为祖国的航天事业感到自豪。"],
+ ["骄傲|作褒义讲时与自豪相近。"],
+ ["自卑|觉得自己不如别人。"],
+ ["心情","品质"],"",[ "骄傲"]);
+W("自卑","zì bēi","形容词",6,"贬","总觉得自己不如别人。",
+ ["别自卑，每个人都有自己的长处。","他不再自卑，勇敢地举手发言了。"],
+ [],
+ ["自豪|为自己感到光荣。","自信|相信自己能做好。"],
+ ["心情","性格"],"",[ "自豪"]);
+W("骄傲","jiāo ào","形容词",4,"中","既是自豪，也指自以为了不起。",
+ ["哥哥考上大学，全家都很骄傲。","取得一点成绩就骄傲，会退步的。"],
+ ["自豪|褒义用法。","自大|贬义用法，看不起人。"],
+ ["谦虚|不高估自己，肯听意见。"],
+ ["品质","性格"],"骄傲有两个意思：光荣自豪是褒义，自大看不起人是贬义。",["自豪","谦虚"]);
+W("谦虚","qiān xū","形容词",5,"褒","不高估自己，愿意听意见。",
+ ["他成绩很好，却一直很谦虚。","谦虚的人进步快。"],
+ ["谦逊|更书面。"],
+ ["骄傲|自以为了不起。","自大|看不起人。"],
+ ["品质","性格"],"",[ "骄傲"]);
+W("害羞","hài xiū","形容词",5,"中","不好意思，腼腆。",
+ ["陌生人一夸她，她就害羞地低下头。","他害羞得脸都红了。"],
+ ["腼腆|更书面。","羞涩|偏书面。"],
+ ["大方|举止自然，不拘束。"],
+ ["神态"],"",[ "大方"]);
+W("大方","dà fang","形容词",3,"褒","举止自然，不小气。",
+ ["她大大方方地走上台做自我介绍。","他很大方，总把好书借给同学。"],
+ ["慷慨|舍得拿出自己的东西。"],
+ ["小气|舍不得，斤斤计较。"],
+ ["品质","性格"],"大方有两个意思：举止自然、不小气。",["小气"]);
+W("小气","xiǎo qì","形容词",5,"贬","过分爱惜自己的东西，舍不得。",
+ ["借块橡皮都不肯，他也太小气了。","别小气嘛，把好书借大家看看。"],
+ ["吝啬|更书面，程度更重。"],
+ ["大方|不小气，肯分享。"],
+ ["品质"],"",[ "大方"]);
+W("后悔","hòu huǐ","动词",5,"中","事后懊恼：当初不该那样做。",
+ ["没听妈妈的劝告，他很后悔。","趁现在还来得及，别等以后后悔。"],
+ ["懊悔|程度更重。","悔恨|带着恨意，最重。"],
+ [],
+ ["心情"],"",[ "懊悔"]);
+W("忧愁","yōu chóu","形容词",6,"中","发愁，心里不痛快。",
+ ["爷爷不为小事忧愁，天天乐呵呵的。","别为这点小事忧愁，办法总会有的。"],
+ ["发愁|更口语。","忧虑|更书面。"],
+ ["快乐|高兴而满足。","愉快|心里轻松舒畅。"],
+ ["情绪","心情"],"",[ "快乐"]);
+
+/* ---------- 人物品质与性格 ---------- */
+W("勇敢","yǒng gǎn","形容词",3,"褒","不怕危险和困难。",
+ ["他勇敢地扶起了摔倒的同学。","消防员叔叔是最勇敢的人。"],
+ ["英勇|多形容战斗中的壮举。","无畏|一点儿也不怕，更书面。"],
+ ["胆小|遇到危险就退缩。","怯懦|胆小怕事。"],
+ ["品质","性格"],"",[ "胆小"]);
+W("胆小","dǎn xiǎo","形容词",3,"贬","胆量小，容易害怕。",
+ ["他胆子小，不敢一个人睡。","妹妹胆小，打雷时总要抱着妈妈。"],
+ ["怯懦|更书面，带贬义。"],
+ ["勇敢|不怕危险。","大胆|敢想敢做。"],
+ ["性格"],"",[ "勇敢"]);
+W("英勇","yīng yǒng","形容词",5,"褒","非常勇敢，不怕危险。",
+ ["消防员英勇地冲进火场救人。","警察叔叔英勇地制服了歹徒。"],
+ ["勇敢|更常用，程度稍轻。"],
+ ["怯懦|胆小怕事。"],
+ ["品质"],"英勇多用在抢险、战斗这类大事上。",["勇敢"]);
+W("无畏","wú wèi","形容词",6,"褒","什么都不怕。",
+ ["科研工作者怀着无畏的精神探索深海。","登山队员怀着无畏的勇气向顶峰进发。"],
+ ["勇敢|更常用。"],
+ ["害怕|心里恐惧。","恐惧|非常害怕。"],
+ ["品质"],"",[ "勇敢"]);
+W("诚实","chéng shí","形容词",3,"褒","说话做事真实，不撒谎。",
+ ["他做错了事能诚实承认。","诚实的孩子人人都喜欢。"],
+ ["老实|守规矩，不惹事，有时显得木讷。"],
+ ["虚伪|嘴上一套心里一套。"],
+ ["品质"],"",[ "虚伪"]);
+W("虚伪","xū wěi","形容词",6,"贬","不真诚，表面一套背后一套。",
+ ["对同学要真诚，别虚伪。","他对谁都客客气气，却不说真心话，显得很虚伪。"],
+ [],
+ ["诚实|真实不撒谎。","真诚|真心待人。"],
+ ["品质"],"",[ "真诚"]);
+W("真诚","zhēn chéng","形容词",5,"褒","真心实意，没有假意。",
+ ["他真诚地向朋友道了歉。","真诚的道歉让人心里暖乎乎的。"],
+ ["诚实|多指不说谎。"],
+ ["虚伪|表面一套背后一套。"],
+ ["品质"],"",[ "虚伪"]);
+W("善良","shàn liáng","形容词",3,"褒","心地好，愿意对人好。",
+ ["善良的她把伞让给了同学。","奶奶心肠善良，常帮助邻居。"],
+ ["慈善|多指对弱者的怜悯帮助。"],
+ ["凶恶|样子或心肠狠，让人害怕。"],
+ ["品质"],"",[ "凶恶"]);
+W("凶恶","xiōng è","形容词",6,"贬","凶狠恶毒，让人害怕。",
+ ["故事里的大灰狼样子十分凶恶。","别看它样子凶恶，其实不咬人。"],
+ ["狠毒|心肠毒辣。"],
+ ["善良|心地好。","慈祥|和善安详。"],
+ ["品质","神态"],"",[ "善良"]);
+W("慈祥","cí xiáng","形容词",5,"褒","老人态度和善，面容安详。",
+ ["奶奶慈祥地笑着给我夹菜。","慈祥的爷爷总是笑眯眯的。"],
+ ["和蔼|态度温和，容易亲近。"],
+ ["凶恶|凶狠吓人。","严厉|神色严肃，要求苛刻。"],
+ ["神态"],"慈祥多形容长辈的面容神情。",["和蔼"]);
+W("和蔼","hé ǎi","形容词",6,"褒","态度温和，让人愿意亲近。",
+ ["王老师和蔼地回答了我的问题。","和蔼的医生一边检查一边逗我笑。"],
+ ["慈祥|多形容长辈的面容。"],
+ ["严厉|神色严肃，要求苛刻。"],
+ ["神态","性格"],"",[ "慈祥"]);
+W("严厉","yán lì","形容词",5,"中","态度凶，声色俱厉。",
+ ["教练严厉地指出了我的错误动作。","爸爸严厉地批评了撒谎的弟弟。"],
+ ["严格|是标准高，不一定是态度凶。"],
+ ["和蔼|温和亲近。","宽容|肯原谅，不计较。"],
+ ["神态","性格"],"严格是标准高，严厉是态度凶；可以严格但不严厉。",["严格"]);
+W("严格","yán gé","形容词",5,"褒","按标准要求，不打折扣。",
+ ["爸爸对我写作业的要求很严格。","老师对我们很严格，作业必须按时交。"],
+ ["严厉|态度凶，声色俱厉。"],
+ ["宽松|不按要求来，放松要求。"],
+ ["品质","学习","生活"],"严格训练对，严厉训练别扭。",["严厉"]);
+W("勤劳","qín láo","形容词",3,"褒","爱劳动，不怕辛苦。",
+ ["勤劳的蜜蜂天天采蜜。","妈妈用勤劳的双手把家收拾得干干净净。"],
+ ["勤奋|多指学习工作努力。","辛勤|多形容劳动的付出。"],
+ ["懒惰|不爱劳动。"],
+ ["品质"],"",[ "勤奋"]);
+W("勤奋","qín fèn","形容词",5,"褒","学习工作努力，不偷懒。",
+ ["他勤奋好学，成绩一直名列前茅。","他每天勤奋练琴，进步很快。"],
+ ["勤劳|多指爱劳动。","刻苦|能吃苦地坚持。"],
+ ["懒惰|不爱劳动和学习。"],
+ ["品质","学习"],"",[ "勤劳","懒惰"]);
+W("懒惰","lǎn duò","形容词",5,"贬","不爱劳动和学习。",
+ ["懒惰的人总把今天的事推到明天。","寒号鸟懒惰，冻死在岩缝里。"],
+ ["懒散|松松垮垮，提不起劲。"],
+ ["勤劳|爱劳动。","勤奋|学习工作努力。"],
+ ["品质"],"",[ "勤劳","勤奋"]);
+W("聪明","cōng míng","形容词",2,"褒","脑子灵，学东西快。",
+ ["他想出个好办法，真聪明。","小猴子聪明伶俐，会模仿人的动作。"],
+ ["机灵|反应快，脑子转得快。","机智|遇到紧急情况能灵活应付。"],
+ ["愚蠢|脑子笨，不会办事。"],
+ ["品质","性格"],"聪明不等于狡猾：狡猾是耍心眼儿骗人。",["机智"]);
+W("愚蠢","yú chǔn","形容词",6,"贬","脑子笨，办事不动脑筋。",
+ ["拔苗助长的做法实在太愚蠢了。","自欺欺人的做法是愚蠢的。"],
+ ["愚笨|更口语些。"],
+ ["聪明|脑子灵，学得快。"],
+ ["品质"],"",[ "聪明"]);
+W("机智","jī zhì","形容词",5,"褒","头脑灵活，能随机应变。",
+ ["他机智地摆脱了陌生人的纠缠。","乌鸦机智地用石子喝到了瓶里的水。"],
+ ["聪明|泛指脑子灵。","机灵|多指口齿伶俐、反应快。"],
+ ["迟钝|反应慢，不灵敏。"],
+ ["品质"],"",[ "聪明"]);
+W("认真","rèn zhēn","形容词",2,"褒","不马虎，严肃对待。",
+ ["他一笔一画认真地写作业。","做眼保健操也要认真。"],
+ ["仔细|心思细，注意小地方。","细心|做事细，不出差错。"],
+ ["马虎|粗枝大叶，不细心。","粗心|不小心，容易错。"],
+ ["品质","学习"],"认真强调态度端正，仔细强调注意细节。",["仔细","细心"]);
+W("马虎","mǎ hu","形容词",4,"贬","做事草率，不细心。",
+ ["他做题太马虎，抄错了数字。","做事马虎的人，小错不断。"],
+ ["粗心|不小心，看漏想漏。"],
+ ["认真|不马虎。","仔细|注意小地方。"],
+ ["品质","学习"],"",[ "粗心"]);
+W("细心","xì xīn","形容词",4,"褒","心思细密，不出差错。",
+ ["细心的护士发现了药瓶上的问题。","她细心地给每盆花都做了记号。"],
+ ["仔细|意思很近，常互换。","认真|侧重态度端正。"],
+ ["粗心|不小心。","大意|不注意，疏忽。"],
+ ["品质"],"",[ "仔细"]);
+W("粗心","cū xīn","形容词",3,"贬","不细心，容易出错。",
+ ["他粗心地把未写成了末。","粗心的他把雨伞落在了车上。"],
+ ["马虎|做事草率。","大意|疏忽大意。"],
+ ["细心|心思细密。","仔细|注意小地方。"],
+ ["品质","学习"],"",[ "细心"]);
+W("仔细","zǐ xì","形容词",2,"褒","细心，注意小地方。",
+ ["他仔细检查了一遍试卷才交。","请仔细观察这张图里藏着什么。"],
+ ["细心|意思很近，常互换。","认真|侧重态度端正。"],
+ ["粗心|不小心，容易错。","马虎|做事草率。"],
+ ["品质"],"",[ "细心","认真"]);
+W("坚强","jiān qiáng","形容词",4,"褒","不怕困难，不轻易倒下。",
+ ["她坚强地配合医生治疗。","遇到挫折要坚强面对。"],
+ ["顽强|劲头更足，不肯服输。"],
+ ["软弱|没有力量，容易屈服。"],
+ ["品质","性格"],"",[ "软弱"]);
+W("软弱","ruǎn ruò","形容词",5,"贬","缺乏力量和勇气。",
+ ["他性格软弱，受了欺负也不敢说。","他不再软弱，敢为自己的想法发声了。"],
+ ["懦弱|胆小怕事，程度更重。"],
+ ["坚强|不怕困难。","顽强|不轻易认输。"],
+ ["性格"],"",[ "坚强"]);
+W("顽强","wán qiáng","形容词",5,"褒","劲头足，不轻易认输。",
+ ["小草顽强地从石缝里钻出来。","队员们顽强地把比分追了回来。"],
+ ["坚强|多形容人的意志。"],
+ ["软弱|缺乏力量和勇气。"],
+ ["品质"],"",[ "坚强"]);
+W("热情","rè qíng","形容词",3,"褒","待人亲热，肯帮忙。",
+ ["售货员热情地为我们介绍商品。","他对每位客人都很热情。"],
+ ["热心|主动关心帮助别人。"],
+ ["冷淡|不热络，爱答不理。","冷漠|对人漠不关心。"],
+ ["品质","性格"],"",[ "热心"]);
+W("热心","rè xīn","形容词",4,"褒","愿意帮助别人。",
+ ["热心的同学帮我把落下的课补上了。","多亏热心邻居的帮助，才找到了走丢的小猫。"],
+ ["热情|多指待人的态度。"],
+ ["冷漠|对人冷淡不关心。","冷淡|不热络。"],
+ ["品质"],"",[ "热情"]);
+W("冷淡","lěng dàn","形容词",5,"中","不热情，爱答不理。",
+ ["他对陌生人总是淡淡的，有点冷淡。","他对新同学很冷淡，爱答不理的。"],
+ ["冷漠|程度更重，心肠硬。"],
+ ["热情|待人亲热。","热心|愿意帮忙。"],
+ ["性格","神态"],"",[ "热情"]);
+W("冷漠","lěng mò","形容词",6,"贬","对人冷淡，漠不关心。",
+ ["对需要帮助的人不能冷漠。","面对求助的眼神，他不再冷漠。"],
+ ["冷淡|程度轻些。"],
+ ["热情|待人亲热。","热心|愿意帮忙。"],
+ ["性格","品质"],"",[ "热情"]);
+W("团结","tuán jié","动词",3,"褒","大家心往一处想，劲往一处使。",
+ ["拔河比赛靠的是团结。","同学们团结互助，班集体像一家人。"],
+ [],
+ ["分裂|散了心，闹对立。"],
+ ["品质","生活"],"团结是动词也是形容词：团结同学、很团结。",[]);
+
+
+/* ---------- 动作与行为 ---------- */
+W("保护","bǎo hù","动词",2,"褒","尽力照顾，使不受损害。",
+ ["我们要保护小动物。","眼睛累了要休息，注意保护视力。"],
+ ["保卫|多用于祖国、家园等大目标。","爱护|多对人或公物，带着爱惜之情。"],
+ ["破坏|使东西损坏、秩序变乱。","伤害|使身体或心受到损害。"],
+ ["动作","品质"],"保卫祖国用保卫，不用保护。",["爱护","保卫"]);
+W("保卫","bǎo wèi","动词",4,"褒","防守保卫，使不受侵犯。",
+ ["解放军日夜保卫着祖国边疆。","战士们保卫着我们的家园。"],
+ ["保护|多指日常照顾，使不受损。"],
+ [],
+ ["动作"],"保卫多用于祖国、边疆、家园这类大目标。",["保护"]);
+W("爱护","ài hù","动词",3,"褒","爱惜保护（人或公物）。",
+ ["我们要爱护花草树木。","老师像妈妈一样爱护我们。"],
+ ["保护|中性，使不受伤害。","珍惜|把东西看得贵重，不浪费。"],
+ ["破坏|把东西弄坏、弄乱。","糟蹋|随意损坏浪费。"],
+ ["动作","品质"],"爱护多带疼爱之情，爱护公物是固定说法。",["保护","珍惜"]);
+W("破坏","pò huài","动词",4,"贬","使东西损坏，使秩序打乱。",
+ ["不许破坏公物。","台风破坏了沿岸的渔船。"],
+ ["损坏|多是无心造成的破坏。"],
+ ["保护|使不受损害。","建设|修建，让变得更好。"],
+ ["动作"],"破坏多是有意的，损坏多是无心的。",[]);
+W("伤害","shāng hài","动词",4,"中","使身体或心灵受到损害。",
+ ["开玩笑也要有分寸，别伤害同学的自尊心。","在大街上追跑打闹，容易伤害自己。"],
+ ["损害|多指利益、健康。"],
+ ["保护|使不受损害。"],
+ ["动作"],"",[]);
+W("帮助","bāng zhù","动词",2,"褒","替人出力、出主意。",
+ ["同学有困难，我们要主动帮助。","这本字典帮助我认识了很多字。"],
+ ["帮忙|口语，常说帮个忙。","援助|多指大方面的支援。"],
+ [],
+ ["动作","品质"],"帮助可以带宾语：帮助你；帮忙一般不带：帮你的忙。",["帮忙"]);
+W("帮忙","bāng máng","动词",3,"褒","替别人做事，出一份力。",
+ ["奶奶包饺子，我也来帮忙。","同桌病了，我帮他忙前忙后地记作业。"],
+ ["帮助|可以带宾语。"],
+ [],
+ ["动作","生活"],"",[ "帮助"]);
+W("表扬","biǎo yáng","动词",3,"褒","公开说好话，鼓励进步。",
+ ["老师表扬了拾金不昧的同学。","因为主动承认错误，他受到了表扬。"],
+ ["称赞|口头夸好。","赞扬|程度更郑重。"],
+ ["批评|指出缺点错误。"],
+ ["动作","学习"],"",["称赞","批评"]);
+W("批评","pī píng","动词",4,"中","指出缺点和错误。",
+ ["他乱扔垃圾，受到了批评。","老师的批评是为了我们进步。"],
+ ["责备|重点在怪罪、数落。"],
+ ["表扬|公开说好话，鼓励进步。","称赞|用话夸奖。"],
+ ["动作","学习"],"",["表扬","称赞"]);
+W("称赞","chēng zàn","动词",4,"褒","用话表达满意和夸奖。",
+ ["客人称赞我家的饺子好吃。","大家都称赞他拾金不昧。"],
+ ["表扬|多用于老师家长对下。","夸奖|口语常用。"],
+ ["批评|指出错误。","责备|数落怪罪。"],
+ ["动作"],"",["表扬","批评"]);
+W("责备","zé bèi","动词",5,"中","批评指摘，重点在怪罪。",
+ ["妈妈只是提醒我，并没有责备我。","他一味责备别人，却不找自己的原因。"],
+ ["批评|指出错误，帮助改正。"],
+ ["称赞|说好话夸奖。"],
+ ["动作"],"",[ "批评"]);
+W("鼓励","gǔ lì","动词",4,"褒","激发人的勇气和信心。",
+ ["老师鼓励我大胆举手发言。","妈妈的鼓励让我重新站了起来。"],
+ ["激励|更书面。","鼓舞|使人振作起来。"],
+ ["打击|挫伤人的信心。"],
+ ["动作","品质"],"",[]);
+W("希望","xī wàng","动词",3,"中","心里想着达到某个目的。",
+ ["我希望暑假去看大海。","种下的种子发芽了，充满了希望。"],
+ ["盼望|殷切地希望。","渴望|像口渴一样急切。","期望|对未来的期待，多用于长辈。"],
+ ["失望|希望落了空。"],
+ ["心情","生活"],"希望也是名词：满心希望、一线希望。",["盼望","渴望"]);
+W("盼望","pàn wàng","动词",4,"中","殷切地期望。",
+ ["我天天盼望爸爸出差回来。","同学们盼望着春游的日子。"],
+ ["希望|更常用、更一般。","期望|多用于长辈对晚辈。"],
+ [],
+ ["心情"],"盼望比希望更急切，常和天天、早日连用。",["希望"]);
+W("渴望","kě wàng","动词",6,"中","像口渴一样迫切地希望。",
+ ["山里的孩子渴望读到更多的书。","他渴望早日康复，回到球场。"],
+ ["盼望|程度稍轻。","希望|最一般。"],
+ [],
+ ["心情"],"渴望程度最深，一般愿望用希望就行，别动不动就渴望。",["盼望"]);
+W("珍惜","zhēn xī","动词",4,"褒","珍重爱惜，不浪费。",
+ ["我们要珍惜粮食。","他珍惜每一分钟的学习时间。"],
+ ["爱惜|多对物品，日常小事也用。","珍爱|更看重，像宝贝一样。"],
+ ["浪费|不该花的花，不该扔的扔。","糟蹋|随意损耗。"],
+ ["品质","生活"],"",["爱惜"]);
+W("爱惜","ài xī","动词",4,"褒","因爱护而舍不得浪费。",
+ ["他爱惜课本，每本都包了书皮。","奶奶最爱惜粮食，碗里不剩一粒米。"],
+ ["珍惜|程度更重，多用于时间、机会。"],
+ ["浪费|不该耗费的耗费了。"],
+ ["品质","生活"],"",[ "珍惜"]);
+W("浪费","làng fèi","动词",3,"贬","不该耗费的耗费了。",
+ ["吃多少盛多少，不能浪费粮食。","开无人灯，太浪费电了。"],
+ ["挥霍|任意花钱，程度重。"],
+ ["节约|省着用，不浪费。","节省|省下东西。"],
+ ["生活","品质"],"",[ "节约"]);
+W("节约","jié yuē","动词",3,"褒","省着用，不浪费。",
+ ["节约用水，随手关紧水龙头。","他把零花钱都节约下来买了书。"],
+ ["节省|更口语，多省下具体东西。","俭省|偏书面。"],
+ ["浪费|不该耗费的耗费了。"],
+ ["品质","生活"],"",[ "浪费"]);
+W("相信","xiāng xìn","动词",3,"中","认为正确或确实如此。",
+ ["我相信他说的是真话。","坚持练习，你一定会进步，请相信自己。"],
+ ["信任|觉得人可靠，敢托付。","信赖|信任并依靠。"],
+ ["怀疑|心里拿不准，不敢相信。"],
+ ["动作"],"我相信他会来是认为会发生；我信任他，是觉得他这个人可靠。",["信任"]);
+W("信任","xìn rèn","动词",4,"褒","相信而敢于托付。",
+ ["老师信任我，让我保管教室钥匙。","队友们都很信任这位新队长。"],
+ ["相信|认为是真的。","信赖|信任并且依靠。"],
+ ["怀疑|心里拿不准。"],
+ ["品质","心情"],"",[ "相信"]);
+W("怀疑","huái yí","动词",5,"中","心里拿不准；不相信。",
+ ["他不守时，我开始怀疑他能不能来。","我怀疑小猫把毛线球藏了起来。"],
+ ["猜疑|无端地怀疑。"],
+ ["相信|认为确实。","信任|觉得可靠。"],
+ ["动作"],"",[ "相信"]);
+W("坚持","jiān chí","动词",3,"褒","坚决保持住，不松劲。",
+ ["他坚持每天晨跑。","再难也要坚持把这件事做完。"],
+ [],
+ ["放弃|不再做下去。"],
+ ["品质","动作"],"",[ "放弃"]);
+W("放弃","fàng qì","动词",4,"中","不再坚持，丢开不做了。",
+ ["这道题再想想，别轻易放弃。","他放弃了休息，帮同学补习功课。"],
+ [],
+ ["坚持|坚决做下去。"],
+ ["动作"],"",[ "坚持"]);
+W("开始","kāi shǐ","动词",2,"中","动手做；从头起。",
+ ["铃声一响，考试开始了。","新学期，我要开始学游泳。"],
+ ["着手|开始做某件事，偏书面。"],
+ ["结束|到了最后，停止。"],
+ ["动作","时间"],"",[ "结束"]);
+W("结束","jié shù","动词",3,"中","到了最后，完毕。",
+ ["运动会在傍晚结束。","汇报演出圆满结束了。"],
+ ["完毕|动作完成，偏书面。"],
+ ["开始|从头起。"],
+ ["动作","时间"],"",[ "开始"]);
+W("成功","chéng gōng","动词",3,"褒","达到目的，事情办成。",
+ ["经过多次试验，我们终于成功了。","这次义卖活动办得很成功。"],
+ ["胜利|多用于比赛、战斗。"],
+ ["失败|没办成，办砸了。"],
+ ["生活"],"",[ "失败"]);
+W("失败","shī bài","动词",3,"中","没达到目的，办砸了。",
+ ["第一次失败不要紧，重来一次。","爱迪生失败了上千次，终于点亮了电灯。"],
+ [],
+ ["成功|办成，达到目的。"],
+ ["生活"],"失败是成功之母。",[ "成功"]);
+W("出现","chū xiàn","动词",3,"中","显露出来。",
+ ["雨后，天空出现了一道彩虹。","问题出现了，就要想办法解决。"],
+ ["显现|偏书面。"],
+ ["消失|慢慢看不见了。"],
+ ["动作","自然"],"",[ "消失"]);
+W("消失","xiāo shī","动词",3,"中","逐渐减少直到没有了。",
+ ["太阳出来，雾慢慢消失了。","他的身影消失在走廊尽头。"],
+ ["消散|多指烟雾、气味散掉。"],
+ ["出现|显露出来。"],
+ ["动作","自然"],"",[ "出现"]);
+W("增加","zēng jiā","动词",3,"中","在原有基础上加多。",
+ ["班里增加了两个新书架。","运动后，饭量明显增加了。"],
+ ["增长|多指数量、水平提高。","增添|添一点，使更丰富。"],
+ ["减少|从原有基础上去掉一些。"],
+ ["数量","动作"],"",[ "减少"]);
+W("减少","jiǎn shǎo","动词",3,"中","从原有基础上去掉一些。",
+ ["少开汽车，能减少空气污染。","错题本让我错题减少了很多。"],
+ [],
+ ["增加|在原有基础上加多。"],
+ ["数量","动作"],"",[ "增加"]);
+W("集合","jí hé","动词",3,"中","许多人聚到一处。",
+ ["下课铃响，我们在操场集合。","明天早上八点在校门口集合。"],
+ ["聚集|自发地聚拢。"],
+ ["解散|分开，各自走。","分散|聚在一起的分开。"],
+ ["动作","数量"],"",[ "分散"]);
+W("聚集","jù jí","动词",5,"中","凑在一起，聚拢。",
+ ["广场上聚集了许多看灯的人。","乌云聚集，天要下雨了。"],
+ ["集合|多指有组织地集中。","汇聚|从四面八方聚到一起。"],
+ ["分散|聚在一起的分开。"],
+ ["动作","数量"],"",[ "分散"]);
+W("分散","fēn sàn","动词",4,"中","聚在一起的分开。",
+ ["放学了，同学们分散回家。","把注意力分散到好几个地方，反而学不进去。"],
+ ["散开|向四周分开。"],
+ ["聚集|聚到一起。","集合|有组织地集中。"],
+ ["动作","数量"],"",[ "聚集"]);
+W("遵守","zūn shǒu","动词",4,"褒","按规定去做。",
+ ["人人都要遵守交通规则。","图书馆里请大家遵守秩序。"],
+ [],
+ ["违反|不按规定做。"],
+ ["品质","学习"],"",[ "违反"]);
+W("违反","wéi fǎn","动词",5,"中","不遵守，反着做。",
+ ["闯红灯违反了交通规则。","违反纪律要受到批评。"],
+ ["违背|多指诺言、意愿。"],
+ ["遵守|按规定去做。"],
+ ["品质","学习"],"",[ "遵守"]);
+W("保持","bǎo chí","动词",4,"中","使继续存在，不变样。",
+ ["请保持教室安静。","坚持锻炼，保持健康。"],
+ ["维持|勉强撑住现状。"],
+ ["改变|变了样。"],
+ ["动作"],"",[ "改变"]);
+W("改变","gǎi biàn","动词",3,"中","变了样，和原来不同。",
+ ["自从爱看书，他改变了许多。","剪了短发，她的形象全改变了。"],
+ ["变化|事物换了样子。","改动|改文字内容。"],
+ ["保持|不变样。"],
+ ["动作"],"",[ "保持"]);
+W("观察","guān chá","动词",3,"中","仔细看，了解情况。",
+ ["科学家仔细观察星星的变化。","写日记前，先观察身边的人和事。"],
+ ["察看|偏书面，查看。"],
+ [],
+ ["动作","学习"],"观察不只是看，还要动脑想。",[]);
+W("眺望","tiào wàng","动词",6,"中","从高处往远处看。",
+ ["登上山顶眺望远方，心胸都开阔了。","他在阳台眺望远处的群山。"],
+ ["遥望|往远处看，不一定在高处。"],
+ [],
+ ["动作","自然"],"眺望多指登高远看。",[]);
+
+/* ---------- 景物与环境 ---------- */
+W("美丽","měi lì","形容词",2,"褒","好看，让人喜欢。",
+ ["春天，公园里开满了美丽的花。","孔雀张开尾巴，美丽极了。"],
+ ["漂亮|口语常用，人和物都能形容。","秀丽|清秀美好，多形容山水。"],
+ ["丑陋|难看，不好看。"],
+ ["景物","程度"],"",["漂亮","秀丽"]);
+W("漂亮","piào liang","形容词",2,"褒","好看；出色。",
+ ["妹妹穿了条漂亮的花裙子。","他这件事办得真漂亮。"],
+ ["美丽|多形容景色、自然事物。"],
+ ["丑陋|难看，不好看。"],
+ ["景物"],"漂亮还能夸事情办得出色，美丽没有这个用法。",["美丽"]);
+W("丑陋","chǒu lòu","形容词",5,"贬","难看。",
+ ["童话里的巫婆长得十分丑陋。","丑陋的毛毛虫有一天会变成美丽的蝴蝶。"],
+ [],
+ ["美丽|好看，让人喜欢。","漂亮|好看，讨人喜欢。"],
+ ["景物"],"",[ "美丽"]);
+W("秀丽","xiù lì","形容词",5,"褒","清秀美丽。",
+ ["桂林的山水清奇秀丽。","江南的田园风光十分秀丽。"],
+ ["秀美|清秀美好。","美丽|更常用。"],
+ [],
+ ["景物"],"秀丽多形容山水风景。",[ "美丽"]);
+W("安静","ān jìng","形容词",3,"中","没有声音，不吵闹。",
+ ["自习课上要保持安静。","夜晚的小村庄格外安静。"],
+ ["宁静|程度更深，多形容夜晚环境。","寂静|几乎没有一点声音，更重。","平静|多形容心情或水面。"],
+ ["喧闹|又吵又乱。","吵闹|声音杂乱。"],
+ ["声音"],"安静可以说安静一点，寂静不能这么说。",["寂静","宁静"]);
+W("寂静","jì jìng","形容词",5,"中","一点声音也没有，静得出奇。",
+ ["深夜的山谷一片寂静。","空无一人的礼堂显得格外寂静。"],
+ ["安静|程度轻，日常场合多用。","宁静|安静中带安宁的味道。"],
+ ["喧闹|又吵又乱。","热闹|人多热闹。"],
+ ["声音"],"寂静程度比安静重，多形容深夜、山谷、空屋。",["安静","宁静"]);
+W("宁静","níng jìng","形容词",5,"中","安静中带着安宁。",
+ ["宁静的夏夜，虫鸣伴着月光。","他心里渐渐宁静下来。"],
+ ["安静|更常用。","寂静|程度更重，多形容深夜空屋。"],
+ ["喧闹|又吵又乱。","吵闹|声音杂乱。"],
+ ["声音","自然"],"形容内心安稳时多用宁静。",["安静","寂静"]);
+W("喧闹","xuān nào","形容词",6,"中","喧哗热闹，声音杂乱。",
+ ["下课了，操场上顿时喧闹起来。","市场里人声喧闹，讨价还价声不断。"],
+ ["吵闹|更口语。","热闹|多指气氛。"],
+ ["安静|没有声音。","宁静|安静安宁。"],
+ ["声音"],"喧闹常带吵得不安宁的味道。",[ "热闹"]);
+W("吵闹","chǎo nào","形容词",3,"中","声音杂乱，不安宁。",
+ ["图书馆里不许吵闹。","弟弟在客厅里吵闹个不停。"],
+ ["喧闹|偏书面。"],
+ ["安静|没有声音。"],
+ ["声音"],"",[ "喧闹"]);
+W("热闹","rè nao","形容词",3,"中","人多，气氛活跃。",
+ ["庙会上人山人海，十分热闹。","过节了，家家户户都热热闹闹的。"],
+ ["喧闹|偏指声音杂乱。"],
+ ["冷清|人少，没有生气。","安静|没有声音。"],
+ ["生活","声音"],"热闹是气氛活跃，喧闹常带吵的意思。",["冷清"]);
+W("冷清","lěng qīng","形容词",5,"中","人少，冷冷静静没有生气。",
+ ["夜深了，街道变得冷清。","假期里的校园有些冷清。"],
+ ["荒凉|多形容地方偏僻破败。"],
+ ["热闹|人多，气氛活跃。"],
+ ["生活","景物"],"",[ "热闹"]);
+W("宽阔","kuān kuò","形容词",4,"中","宽大开阔。",
+ ["新修的马路又平又宽阔。","宽阔的操场上跑步真痛快。"],
+ ["宽广|多形容天地、胸怀。","辽阔|多形容地域国土，非常大。"],
+ ["狭窄|宽度小。"],
+ ["空间"],"辽阔的草原可以，辽阔的马路不行；马路用宽阔。",["辽阔","宽广"]);
+W("宽广","kuān guǎng","形容词",5,"中","宽大广阔。",
+ ["大海宽广无边。","他的胸怀像大海一样宽广。"],
+ ["宽阔|多指具体的路、场地。","辽阔|更大更书面。"],
+ ["狭窄|宽度小。"],
+ ["空间"],"",[ "宽阔"]);
+W("狭窄","xiá zhǎi","形容词",4,"中","宽度小；心胸不宽。",
+ ["老街的巷子很狭窄。","心胸狭窄的人容易生闷气。"],
+ ["狭小|又窄又小。"],
+ ["宽阔|宽大开阔。","宽广|宽大广阔。"],
+ ["空间"],"狭窄也可以形容心胸。",[ "宽阔"]);
+W("辽阔","liáo kuò","形容词",5,"褒","广阔无边，多形容大地。",
+ ["辽阔的草原上牛羊成群。","我国的疆土辽阔富饶。"],
+ ["广阔|更通用。","宽广|宽大广阔。"],
+ ["狭小|又窄又小。"],
+ ["空间","景物"],"辽阔多形容草原、海洋、国土这类望不到边的地方。",[ "宽阔"]);
+W("广阔","guǎng kuò","形容词",5,"中","广大开阔。",
+ ["农村是一片广阔的天地。","视野变得开阔，心也跟着广阔起来。"],
+ ["辽阔|更大更书面。","宽广|宽大广阔。"],
+ ["狭窄|宽度小。"],
+ ["空间"],"",[]);
+W("陡峭","dǒu qiào","形容词",6,"中","山势坡度大，直上直下。",
+ ["黄山的天都峰又高又陡峭。","陡峭的崖壁上几乎没有路。"],
+ ["险峻|又高又险。"],
+ ["平坦|没有高低，好走。"],
+ ["景物","自然"],"陡峭只形容山坡崖壁，不能说陡峭的马路。",[]);
+W("平坦","píng tǎn","形容词",4,"中","没有高低坑洼。",
+ ["汽车行驶在平坦的公路上。","操场修整得很平坦。"],
+ ["平整|表面平。"],
+ ["崎岖|山路高低不平。","陡峭|坡度大，直上直下。"],
+ ["景物","自然"],"",[ "崎岖"]);
+W("崎岖","qí qū","形容词",6,"中","山路高低不平。",
+ ["邮递员走过了崎岖的山路。","崎岖的小路通向山顶。"],
+ [],
+ ["平坦|没有高低坑洼。"],
+ ["景物","自然"],"崎岖只用来形容山路。",[ "平坦"]);
+W("茂密","mào mì","形容词",4,"褒","草木长得又多又密。",
+ ["茂密的树叶遮住了阳光。","枝叶茂密的榕树像一把大伞。"],
+ ["茂盛|长势旺。","繁茂|繁密茂盛，偏书面。"],
+ ["稀疏|又少又稀。"],
+ ["自然","景物"],"茂密侧重又多又密。",[ "茂盛"]);
+W("茂盛","mào shèng","形容词",4,"褒","长得旺盛。",
+ ["夏天，院子里的花草长得很茂盛。","雨水足，庄稼长得很茂盛。"],
+ ["茂密|侧重又多又密。"],
+ ["枯萎|草木干枯。"],
+ ["自然","景物"],"",[ "茂密"]);
+W("稀疏","xī shū","形容词",5,"中","又少又稀，间隔大。",
+ ["冬天的树上只剩下几片稀疏的叶子。","远处传来稀疏的鞭炮声。"],
+ [],
+ ["茂密|又多又密。","茂盛|长得旺盛。"],
+ ["自然","景物"],"",[ "茂密"]);
+W("枯萎","kū wěi","动词",5,"中","草木干枯萎缩。",
+ ["好久没浇水，花都枯萎了。","严寒让田野里的草枯萎了。"],
+ [],
+ ["茂盛|长得旺盛。"],
+ ["自然"],"",[ "茂盛"]);
+W("明亮","míng liàng","形容词",3,"中","光线足，看得清。",
+ ["教室里窗明几净，十分明亮。","明亮的月光洒在窗台上。"],
+ ["明媚|多形容春光。","透亮|透光发亮，口语。"],
+ ["昏暗|光线不足。","阴暗|缺少阳光。"],
+ ["自然"],"",[ "明媚"]);
+W("明媚","míng mèi","形容词",5,"褒","明亮动人，多形容春光。",
+ ["春光明媚，正是郊游的好日子。","明媚的阳光照在操场上。"],
+ ["明朗|晴朗开朗。"],
+ ["阴沉|天色昏暗。"],
+ ["天气","自然"],"明媚多和春光、阳光搭配。",[]);
+W("昏暗","hūn àn","形容词",5,"中","光线不足，发暗。",
+ ["楼道里的灯坏了，一片昏暗。","山洞里越来越昏暗。"],
+ ["阴暗|又暗又潮，缺少阳光。"],
+ ["明亮|光线足。"],
+ ["自然"],"",[ "明亮"]);
+W("阴暗","yīn àn","形容词",4,"中","暗，缺少阳光。",
+ ["地下室又阴暗又潮湿。","天色阴暗，像要下雨了。"],
+ ["昏暗|多指灯光、场景发暗。"],
+ ["明亮|光线足。"],
+ ["天气","自然"],"",[ "明亮"]);
+W("干净","gān jìng","形容词",2,"褒","没有尘土和脏东西。",
+ ["他把桌子擦得干干净净。","洗干净的小手才能拿东西吃。"],
+ ["洁净|偏书面。","清洁|干净卫生。"],
+ ["肮脏|又脏又难看。"],
+ ["生活"],"",[ "肮脏"]);
+W("肮脏","āng zāng","形容词",5,"贬","脏，不干净。",
+ ["小猪在泥坑里滚得一身肮脏。","角落里堆着肮脏的杂物。"],
+ ["污秽|偏书面。"],
+ ["干净|没有脏东西。","清洁|干净卫生。"],
+ ["生活"],"",[ "干净"]);
+W("整洁","zhěng jié","形容词",4,"褒","整齐又干净。",
+ ["他的书桌收拾得很整洁。","教室被值日生打扫得整洁明亮。"],
+ ["整齐|侧重排列有序。"],
+ ["凌乱|乱七八糟。","杂乱|混作一团乱。"],
+ ["生活"],"整洁比整齐多一层干净的意思。",[]);
+W("整齐","zhěng qí","形容词",3,"中","排列有序，不凌乱。",
+ ["队伍排得整整齐齐。","书架上的书摆放得很整齐。"],
+ ["整洁|还带干净的意思。"],
+ ["凌乱|不整齐。"],
+ ["生活"],"",[ "凌乱"]);
+W("凌乱","líng luàn","形容词",5,"中","不整齐，乱。",
+ ["风把桌上的纸吹得凌乱。","他起床晚了，头发凌乱就冲出了门。"],
+ ["杂乱|混在一起乱。"],
+ ["整齐|排列有序。","整洁|整齐干净。"],
+ ["生活"],"",[ "整齐"]);
+W("模糊","mó hu","形容词",4,"中","看不清，不分明。",
+ ["雾太大了，远处一片模糊。","他的字迹很模糊，认不出来。"],
+ ["朦胧|半明半暗看不清，多形容月色、睡眼。"],
+ ["清晰|看得分明。","清楚|清清楚楚。"],
+ ["程度"],"",[ "清晰"]);
+W("清晰","qīng xī","形容词",5,"中","清清楚楚，分明。",
+ ["湖面清晰地映出白云的影子。","录音里他的声音很清晰。"],
+ ["清楚|更口语常用。"],
+ ["模糊|看不清。","朦胧|看不真切。"],
+ ["程度"],"",[ "模糊"]);
+W("清楚","qīng chu","形容词",3,"中","容易看清、听懂。",
+ ["老师讲得很清楚，大家都听懂了。","把要求写清楚，免得大家记错。"],
+ ["清晰|多形容影像、字迹。"],
+ ["模糊|看不清。"],
+ ["程度"],"",[ "模糊"]);
+W("朦胧","méng lóng","形容词",6,"中","看不清，模模糊糊。",
+ ["月色朦胧，湖面像蒙了一层纱。","睡眼朦胧的他差点坐过站。"],
+ ["模糊|看不清。"],
+ ["清晰|看得分明。","清楚|清清楚楚。"],
+ ["自然","程度"],"朦胧多形容月色、烟雾、睡眼。",[ "模糊"]);
+W("晴朗","qíng lǎng","形容词",3,"中","没有云雾，阳光好。",
+ ["晴朗的天空飘着几朵白云。","今天天气晴朗，适合放风筝。"],
+ ["明朗|晴朗开朗。"],
+ ["阴沉|天色暗，要下雨的样子。"],
+ ["天气"],"",[ "阴沉"]);
+W("阴沉","yīn chén","形容词",5,"中","天色昏暗；脸色难看。",
+ ["天阴沉得像要下雨了。","他脸色阴沉，一言不发。"],
+ [],
+ ["晴朗|没有云雾，阳光好。"],
+ ["天气","神态"],"阴沉也可以形容脸色难看。",[ "晴朗"]);
+W("炎热","yán rè","形容词",4,"中","天气很热。",
+ ["炎热的夏天，知了叫个不停。","正午的沙漠炎热难耐。"],
+ ["酷热|比炎热更热。","闷热|又热又不透气。"],
+ ["寒冷|温度低。","凉爽|凉快清爽。"],
+ ["天气"],"",[ "寒冷"]);
+W("寒冷","hán lěng","形容词",3,"中","温度很低，很冷。",
+ ["寒冷的冬天，北风呼呼地刮。","清晨的河边格外寒冷。"],
+ ["严寒|极冷，偏书面。","冰冷|物体很凉。"],
+ ["温暖|不冷不热，舒服。","炎热|天气很热。"],
+ ["天气"],"",[ "温暖"]);
+W("温暖","wēn nuǎn","形容词",3,"褒","不冷不热，舒服；也指心里温馨。",
+ ["春天的阳光很温暖。","同学的关心让我心里温暖。"],
+ ["暖和|口语常用，只指温度。"],
+ ["寒冷|温度低。","冰冷|物体很凉。"],
+ ["天气","心情"],"说心里的温情只能用温暖。",[ "暖和"]);
+W("暖和","nuǎn huo","形容词",3,"中","不冷，温度合适。",
+ ["屋里生了炉子，暖和多了。","晒着太阳，身上暖洋洋的。"],
+ ["温暖|还可指心里的感觉。"],
+ ["寒冷|温度很低。","凉爽|凉快清爽。"],
+ ["天气"],"",[ "温暖"]);
+W("凉爽","liáng shuǎng","形容词",4,"褒","凉快清爽。",
+ ["秋天的早晨凉爽宜人。","山里的风吹来，凉爽极了。"],
+ ["凉快|口语常用，常说好凉快。"],
+ ["炎热|天气很热。","闷热|又热又不透气。"],
+ ["天气"],"",[ "炎热"]);
+W("湿润","shī rùn","形容词",5,"中","潮潮湿湿，不干。",
+ ["春雨过后，泥土变得湿润。","海边的空气湿润清新。"],
+ ["潮湿|水汽多。"],
+ ["干燥|没有水分。"],
+ ["天气","自然"],"",[ "干燥"]);
+W("干燥","gān zào","形容词",5,"中","没有水分，干。",
+ ["秋天干燥，要多喝水。","沙漠里气候干燥少雨。"],
+ [],
+ ["湿润|潮潮湿湿。"],
+ ["天气","自然"],"",[ "湿润"]);
+W("壮观","zhuàng guān","形容词",4,"褒","景象雄伟盛大。",
+ ["钱塘江大潮十分壮观。","瀑布飞流直下，壮观极了。"],
+ ["雄伟|多形容建筑、山川。"],
+ [],
+ ["景物"],"壮观多形容场面、景象。",[ "雄伟"]);
+W("雄伟","xióng wěi","形容词",5,"褒","雄壮伟大，气势大。",
+ ["长城蜿蜒在雄伟的群山之间。","人民英雄纪念碑雄伟庄严。"],
+ ["壮观|多指场面景象。","壮丽|雄壮美丽。"],
+ [],
+ ["景物"],"雄伟多形容建筑物、山川。",[ "壮观"]);
+W("坚固","jiān gù","形容词",5,"中","结合得紧密，不容易坏。",
+ ["大桥的桥墩非常坚固。","堡垒修得十分坚固。"],
+ ["牢固|多指结合得不易分开，如地基、观念。","结实|口语，多指物体或身体。"],
+ ["脆弱|容易坏。","松散|不紧密。"],
+ ["程度"],"牢固的友谊可以说，坚固的友谊不太合适。",["牢固","结实"]);
+W("牢固","láo gù","形容词",5,"中","结实牢固，不易动摇。",
+ ["地基打得牢固，房子才安全。","我们之间的友谊很牢固。"],
+ ["坚固|多指建筑物等实物。","结实|口语，多指物体或身体。"],
+ ["脆弱|容易坏。","松散|不紧密。"],
+ ["程度"],"",[ "坚固"]);
+W("结实","jiē shi","形容词",3,"中","牢固耐用；身体强壮。",
+ ["这双运动鞋很结实，穿了两年还没坏。","常锻炼的身体更结实。"],
+ ["坚固|书面些。","牢固|不易动摇。"],
+ ["脆弱|容易坏、容易受伤。"],
+ ["程度"],"",[ "坚固","牢固"]);
+W("脆弱","cuì ruò","形容词",6,"中","容易碎；不坚强。",
+ ["玻璃杯很脆弱，容易打碎。","她的感情很脆弱，一批评就掉泪。"],
+ [],
+ ["结实|不容易坏。","坚强|不怕困难。"],
+ ["程度","性格"],"",[ "结实"]);
+
+/* ---------- 程度 · 速度 · 时间 ---------- */
+W("立刻","lì kè","副词",4,"中","马上，紧接着。",
+ ["听到铃声，他立刻坐好。","老师一说开始，大家立刻动起手来。"],
+ ["马上|意思相近，常互换。","立即|偏书面。"],
+ [],
+ ["速度","动作"],"立刻、马上都表示动作快，渐渐正相反，强调有个过程。",["马上"]);
+W("马上","mǎ shàng","副词",3,"中","立刻，很快就要。",
+ ["电影马上就要开始了。","别急，我马上就来。"],
+ ["立刻|强调紧跟着发生。","立即|偏书面。"],
+ [],
+ ["速度","时间"],"马上还能表示很快就要：马上要放假了。",[ "立刻"]);
+W("顿时","dùn shí","副词",5,"中","只用于已经发生的事：一下子。",
+ ["听到好消息，教室里顿时沸腾了。","他一开口，全场顿时安静下来。"],
+ ["立刻|可用于将来，顿时只用于过去。"],
+ [],
+ ["速度","时间"],"顿时只能说已经发生的事，不能说我顿时就去。",["立刻"]);
+W("渐渐","jiàn jiàn","副词",3,"中","慢慢地，一点一点地。",
+ ["天色渐渐暗了下来。","坚持练习，他的字渐渐好看起来。"],
+ ["逐渐|更书面。","慢慢|更口语。"],
+ [],
+ ["速度"],"渐渐强调有个过程，不能说他渐渐跑过来，要用飞快。",[ "逐渐"]);
+W("逐渐","zhú jiàn","副词",4,"中","慢慢变化，有过程。",
+ ["在老师帮助下，我的成绩逐渐提高。","天边的鱼肚白逐渐亮了起来。"],
+ ["渐渐|更口语。"],
+ [],
+ ["速度","程度"],"",[ "渐渐"]);
+W("缓慢","huǎn màn","形容词",5,"中","速度低，不快。",
+ ["救护车在车流中缓慢前行。","蜗牛的动作十分缓慢。"],
+ ["迟缓|反应或动作慢。"],
+ ["飞快|速度非常快。","迅速|速度高。"],
+ ["速度"],"",[ "迅速"]);
+W("迅速","xùn sù","形容词",4,"中","速度高，非常快。",
+ ["同学们迅速排好了队。","消防员迅速扑灭了小火苗。"],
+ ["飞快|口语些。","快速|速度快。"],
+ ["缓慢|速度低。"],
+ ["速度"],"",[ "缓慢"]);
+W("飞快","fēi kuài","形容词",3,"中","像飞一样快。",
+ ["他飞快地跑向公交车站。","时间飞快，一学期又过去了。"],
+ ["迅速|书面些。"],
+ ["缓慢|速度低。"],
+ ["速度"],"",[ "迅速"]);
+W("突然","tū rán","形容词",3,"中","在短时间里发生，出乎意料。",
+ ["天空突然下起了大雨。","他突然想起忘带作业本了。"],
+ ["忽然|副词，意思很近，常互换。"],
+ [],
+ ["速度","时间"],"突然是形容词也是副词：突然的事件可以，忽然的事件不行。",["忽然"]);
+W("忽然","hū rán","副词",3,"中","情况发生得急而且出乎意料。",
+ ["他走着走着，忽然停住了。","天忽然暗了下来。"],
+ ["突然|还能当形容词用。"],
+ [],
+ ["速度","时间"],"",[ "突然"]);
+W("经常","jīng cháng","副词",3,"中","常常，大多数时候。",
+ ["他经常去图书馆看书。","爷爷经常早起锻炼。"],
+ ["常常|意思相近。","时常|偏书面。"],
+ ["偶尔|偶尔才有一次。"],
+ ["程度"],"频率正相反：经常是几乎每次，偶尔是偶尔有一次。",["偶尔"]);
+W("偶尔","ǒu ěr","副词",4,"中","有时候，不经常。",
+ ["他学习很忙，只是偶尔打打球。","爷爷偶尔也看动画片，逗得全家直乐。"],
+ ["时不时|口语，意思相同。"],
+ ["经常|大多数时候。","常常|大多数时候，频率高。"],
+ ["程度"],"别把偶尔写成偶然：偶然多指巧遇、意外。",[ "经常"]);
+W("非常","fēi cháng","副词",2,"中","十分，很。",
+ ["今天的晚会非常精彩。","他跑得非常快。"],
+ ["特别|还有与众不同的意思。","十分|书面些。","格外|超出一般，多用于好的一面。"],
+ [],
+ ["程度"],"非常后面不能再加很。",[]);
+W("特别","tè bié","形容词",3,"中","不一般；格外。",
+ ["今天的作业特别少。","这只小猫特别爱干净。"],
+ ["非常|最常用。","格外|超出一般。","尤其|在多个里更进一层。"],
+ [],
+ ["程度","生活"],"特别还有与众不同的意思：特别的礼物。",[]);
+W("十分","shí fēn","副词",3,"中","很，非常。",
+ ["他十分喜欢下象棋。","大家听得十分认真。"],
+ ["非常|最常用。","格外|超出一般。"],
+ [],
+ ["程度"],"",[ "非常"]);
+W("格外","gé wài","副词",4,"中","比平时更；超出一般。",
+ ["雨后的空气格外清新。","今天的月亮格外亮。"],
+ ["分外|偏书面。","特别|意思相近。","非常|最常用。"],
+ [],
+ ["程度"],"格外多用于好的一面：格外精神、格外亲切。",[]);
+W("普通","pǔ tōng","形容词",4,"中","平常，一般。",
+ ["这是一把普通的尺子，却陪了我三年。","他穿着一身普通的校服。"],
+ ["平常|一般，不稀奇。"],
+ ["特别|不一般。"],
+ ["程度","生活"],"",[ "特别"]);
+W("精彩","jīng cǎi","形容词",4,"褒","出色，好看。",
+ ["运动会的开幕式很精彩。","这本书的故事十分精彩。"],
+ ["出色|做事好，超出一般。"],
+ [],
+ ["程度"],"精彩多形容表演、比赛、文章。",[ "出色"]);
+W("出色","chū sè","形容词",5,"褒","特别好，超出一般。",
+ ["她在演讲比赛中表现出色。","他出色地完成了任务。"],
+ ["精彩|多指表演、内容好看。"],
+ [],
+ ["程度"],"",[ "精彩"]);
+W("继续","jì xù","动词",3,"中","（停一段时间后）接着往下进行。",
+ ["休息一会儿，我们继续写作业。","雨停了，比赛继续进行。"],
+ ["接着|口语，接着往下做。"],
+ ["停止|不再进行。","中断|中途断开。"],
+ ["动作","时间"],"继续是停了再接着做，连续是一个接一个不间断。",["连续","停止"]);
+W("连续","lián xù","动词",4,"中","一个接一个，不间断。",
+ ["他连续三年被评为三好学生。","连续下了三天雨。"],
+ ["接连|一个接一个，口语些。"],
+ ["中断|中途断开。","间断|时断时续。"],
+ ["动作","时间"],"连续下雨三天对；继续下雨三天不对。",[ "继续"]);
+W("停止","tíng zhǐ","动词",3,"中","不再进行。",
+ ["外面下大雨，比赛暂时停止。","绿灯一亮，噪杂声停止了。"],
+ ["中止|书面，中途停止。"],
+ ["继续|接着做下去。","开始|从头起。"],
+ ["动作","时间"],"",[ "继续"]);
+W("中断","zhōng duàn","动词",6,"中","中途断开。",
+ ["暴雨让山区的信号中断了。","一场大病中断了他的训练。"],
+ [],
+ ["连续|一个接一个不断。","继续|接着做下去。"],
+ ["动作","时间"],"",[ "连续"]);
+W("需要","xū yào","动词",3,"中","应该有；不可缺少。",
+ ["种花需要阳光和水。","我需要一把尺子画线。"],
+ ["须要|一定要有，偏书面。"],
+ [],
+ ["生活"],"需要是动词：我需要休息；必须是副词：必须休息。",[]);
+W("必须","bì xū","副词",4,"中","一定要，不得不。",
+ ["过马路必须走斑马线。","想要进步，必须坚持练习。"],
+ ["必需|一定要有的，形容词：生活必需品。"],
+ [],
+ ["生活","学习"],"必须后面接动作；必需是形容词：生活必需品。",[]);
+
+/* ---------- 成语 ---------- */
+W("全神贯注","quán shén guàn zhù","成语",5,"褒","全部精神集中在一点。",
+ ["他全神贯注地拼装模型。","同学们全神贯注地听老师讲题。"],
+ ["专心致志|意思很近。","聚精会神|意思很近。"],
+ ["心不在焉|心思不在这里。"],
+ ["学习","神态"],"",["专心致志"]);
+W("专心致志","zhuān xīn zhì zhì","成语",5,"褒","一心一意，聚精会神。",
+ ["她专心致志地读完了整本书。","做手工时要专心致志才不出错。"],
+ ["全神贯注|意思很近。","聚精会神|意思很近。"],
+ ["三心二意|一会儿想这，一会儿想那。","心不在焉|心思不在这里。"],
+ ["学习"],"",["全神贯注","聚精会神"]);
+W("聚精会神","jù jīng huì shén","成语",5,"褒","精神集中，注意力高度集中。",
+ ["同学们聚精会神地听老师讲课。","他聚精会神地观察蚂蚁搬家。"],
+ ["专心致志|意思很近。","全神贯注|意思很近。"],
+ ["心不在焉|心思不在这里。"],
+ ["学习","神态"],"",["专心致志"]);
+W("兴高采烈","xìng gāo cǎi liè","成语",5,"褒","兴致高，情绪热烈。",
+ ["同学们兴高采烈地参加了运动会。","听说去动物园，孩子们兴高采烈。"],
+ ["欢天喜地|高兴得不得了。"],
+ ["垂头丧气|低头没精神。","无精打采|打不起精神。"],
+ ["情绪"],"",[ "垂头丧气"]);
+W("垂头丧气","chuí tóu sàng qì","成语",5,"中","低着头脑袋，情绪低落。",
+ ["比赛输了，他垂头丧气地回了教室。","别垂头丧气的，下次还有机会。"],
+ ["无精打采|没精神。"],
+ ["兴高采烈|兴致勃勃。"],
+ ["情绪"],"",[ "兴高采烈"]);
+W("无精打采","wú jīng dǎ cǎi","成语",5,"中","打不起精神。",
+ ["他感冒了，无精打采地趴在桌上。","天太热了，连小狗都无精打采的。"],
+ ["垂头丧气|偏指情绪低落。"],
+ ["兴高采烈|兴致勃勃。"],
+ ["神态"],"",[ "兴高采烈"]);
+W("争先恐后","zhēng xiān kǒng hòu","成语",4,"中","抢着向前，唯恐落后。",
+ ["发新书了，同学们争先恐后地领。","下课铃一响，大家争先恐后地跑向操场。"],
+ [],
+ [],
+ ["动作","学习"],"恐在这里是怕的意思：唯恐落后。",[]);
+W("三心二意","sān xīn èr yì","成语",5,"贬","一会儿想这，一会儿想那，不专心。",
+ ["写作业时三心二意，错题就多。","学本领要一心一意，不能三心二意。"],
+ [],
+ ["专心致志|一心一意。","一心一意|心思专一，不分散。"],
+ ["学习","性格"],"",[ "一心一意"]);
+W("一心一意","yī xīn yī yì","成语",4,"褒","心思专一。",
+ ["他一心一意想学会骑自行车。","妈妈一心一意支持我的爱好。"],
+ ["专心致志|意思很近。"],
+ ["三心二意|不专心。"],
+ ["学习","品质"],"",[ "三心二意"]);
+W("心不在焉","xīn bú zài yān","成语",5,"中","心思不在这里。",
+ ["上课时他心不在焉，被老师点名了。","他心不在焉地翻着书，一个字也没看进去。"],
+ ["三心二意|不专心。"],
+ ["全神贯注|精神高度集中。","专心致志|一心一意。"],
+ ["学习","神态"],"",["全神贯注"]);
+
+
+/* =====================================================================
+ * 词库扩容（一）：情绪与心情 / 人物品质 / 动作行为
+ * ===================================================================== */
+W("烦恼","fán nǎo","形容词",5,"中","心里烦闷，不痛快。",
+ ["作业太多，他有点烦恼。","别为小事烦恼，睡一觉就好。"],
+ ["苦恼|意思相近，常互换。"],
+ ["快乐|心里高兴满足。","舒畅|心情流畅痛快。"],
+ ["情绪","心情"],"",[]);
+W("苦恼","kǔ nǎo","形容词",5,"中","痛苦烦恼，想不开。",
+ ["弟弟为拼不好的模型苦恼。","他苦恼地挠了挠头。"],
+ ["烦恼|更常用。"],
+ ["快乐|心里高兴。"],
+ ["情绪"],"",[ "烦恼"]);
+W("沮丧","jǔ sàng","形容词",6,"中","灰心失望，打不起精神。",
+ ["比赛输了，他一脸沮丧。","别沮丧，我们还有机会。"],
+ ["灰心|更口语。"],
+ ["振作|重新打起精神。"],
+ ["情绪"],"",[ "灰心"]);
+W("灰心","huī xīn","动词",4,"中","因失败而失去信心。",
+ ["一次没考好，别灰心。","他不灰心，接着练习。"],
+ ["沮丧|程度更重些。","泄气|更口语，像球瘪了。"],
+ ["自信|相信自己能做好。"],
+ ["情绪","心情"],"一次失败就灰心，下一次更难成功。",[ "沮丧"]);
+W("泄气","xiè qì","动词",4,"中","失去劲头和信心。",
+ ["才跑两圈就泄气可不行。","给大家鼓鼓劲，别泄气。"],
+ ["灰心|更书面些。"],
+ ["振作|重新鼓起劲。"],
+ ["情绪"],"",[ "灰心"]);
+W("振作","zhèn zuò","动词",5,"褒","重新打起精神来。",
+ ["他振作精神，继续复习。","妈妈一句话让我振作起来。"],
+ ["振奋|更书面。"],
+ ["灰心|失去信心。","泄气|没了劲头。"],
+ ["情绪","动作"],"",[]);
+W("羞愧","xiū kuì","形容词",6,"中","又羞又愧，不好意思。",
+ ["他羞愧地低下了头。","说了谎话，心里很羞愧。"],
+ ["惭愧|更常用。"],
+ ["自豪|为自己光荣。"],
+ ["情绪"],"",[ "惭愧"]);
+W("惭愧","cán kuì","形容词",5,"中","做错事心里不安。",
+ ["没帮上忙，我很惭愧。","他惭愧地承认了错误。"],
+ ["羞愧|程度更重。"],
+ ["自豪|为自己骄傲。"],
+ ["情绪"],"",[ "羞愧"]);
+W("得意","dé yì","形容词",5,"中","称心如意，有点自满。",
+ ["他考了第一，得意极了。","别得意，继续努力。"],
+ ["自豪|是褒义的光荣，得意常带自满。"],
+ [],
+ ["情绪"],"得意忘形是贬义，写作文要小心用。",[]);
+W("羡慕","xiàn mù","动词",4,"中","见别人好，希望自己也有。",
+ ["我羡慕哥哥会游泳。","大家都羡慕她的新书包。"],
+ ["仰慕|更书面，带着敬意。"],
+ ["嫉妒|眼红别人，想据为己有。"],
+ ["情绪"],"羡慕是正常心理，嫉妒带恶意。",[]);
+W("嫉妒","jí dù","动词",6,"贬","对别人的长处心里眼红。",
+ ["嫉妒让同学不愿和他玩。","别嫉妒同学，向他学习。"],
+ [],
+ ["羡慕|只盼自己也拥有，不带恶意。"],
+ ["情绪"],"嫉妒是贬义词，羡慕是正常心理。",[]);
+W("讨厌","tǎo yàn","动词",4,"中","心里不喜欢，厌烦。",
+ ["我最讨厌撒谎的人。","弟弟讨厌吃胡萝卜。"],
+ ["厌恶|程度更重，更书面。"],
+ ["喜欢|心里有好感。"],
+ ["情绪"],"",[ "厌恶","喜欢"]);
+W("喜欢","xǐ huan","动词",2,"褒","对人或事物有好感。",
+ ["我喜欢读科普书。","大家都喜欢这位新老师。"],
+ ["喜爱|更书面些。"],
+ ["讨厌|心里厌烦。","厌恶|程度更重。"],
+ ["情绪","心情"],"",[ "讨厌","喜爱"]);
+W("喜爱","xǐ ài","动词",4,"褒","喜欢并疼爱。",
+ ["爷爷最喜爱这盆兰花。","她深受同学们的喜爱。"],
+ ["喜欢|更口语常用。"],
+ ["厌恶|非常讨厌。"],
+ ["情绪"],"",[ "喜欢"]);
+W("厌恶","yàn wù","动词",6,"贬","非常讨厌，不想接近。",
+ ["他厌恶撒谎的行为。","大家对浪费行为十分厌恶。"],
+ ["讨厌|程度轻些，口语。"],
+ ["喜欢|有好感。","喜爱|喜欢疼爱。"],
+ ["情绪"],"",[ "讨厌","喜欢"]);
+W("舒服","shū fu","形容词",3,"中","身体或心情轻松愉快。",
+ ["泡完热水澡，浑身舒服。","新椅子坐着真舒服。"],
+ ["舒适|更书面。","舒畅|多形容心情。"],
+ ["难受|身体或心里不舒服。"],
+ ["心情","生活"],"",[ "舒适"]);
+W("难受","nán shòu","形容词",3,"中","身体或心里不舒服。",
+ ["感冒了，鼻子难受极了。","被误会了，他心里难受。"],
+ ["难过|多指心情。"],
+ ["舒服|轻松愉快。","舒适|舒服安逸。"],
+ ["心情","情绪"],"",[ "舒服"]);
+W("舒适","shū shì","形容词",5,"褒","舒服安逸。",
+ ["房间收拾得舒适整洁。","舒适的椅子让人不想起身。"],
+ ["舒服|更口语。"],
+ ["难受|不舒服。"],
+ ["生活"],"",[ "舒服"]);
+W("舒畅","shū chàng","形容词",5,"褒","心情舒展流畅，痛快。",
+ ["雨后散步，心情格外舒畅。","把烦恼说出来，心里舒畅多了。"],
+ ["舒服|多指身体。","愉快|多形容状态。"],
+ ["郁闷|心里堵得慌。"],
+ ["心情"],"",[ "舒服"]);
+W("郁闷","yù mèn","形容词",5,"中","心里堵得慌，不痛快。",
+ ["下雨不能出去玩，真郁闷。","他把郁闷写进了日记。"],
+ ["烦闷|更书面。"],
+ ["开心|心里痛快。","舒畅|心情流畅。"],
+ ["情绪","心情"],"",[]);
+W("安慰","ān wèi","动词",4,"褒","让人心里好受些。",
+ ["他安慰哭泣的同学。","妈妈的安慰让我不哭了。"],
+ ["抚慰|更书面。"],
+ ["打击|挫伤人的心。"],
+ ["动作","情绪"],"",[]);
+W("大胆","dà dǎn","形容词",3,"褒","有勇气，不怕。",
+ ["他大胆说出了自己的想法。","大胆假设，小心求证。"],
+ ["勇敢|更常用。"],
+ ["胆小|害怕退缩。"],
+ ["性格","品质"],"",[ "勇敢"]);
+W("果断","guǒ duàn","形容词",6,"褒","拿主意快，不拖泥带水。",
+ ["他果断地按下了暂停键。","队长果断做出了决定。"],
+ ["坚决|态度不含糊。"],
+ ["犹豫|拿不定主意。"],
+ ["性格"],"",[ "坚决"]);
+W("犹豫","yóu yù","形容词",5,"中","拿不定主意。",
+ ["他犹豫了一下才举手。","别再犹豫了，机会不等人。"],
+ ["迟疑|更书面。"],
+ ["果断|决定得快。","坚决|态度干脆。"],
+ ["性格"],"",[ "果断"]);
+W("坚决","jiān jué","形容词",5,"褒","态度确定，不含糊。",
+ ["他坚决不同意这个做法。","我坚决支持你的计划。"],
+ ["坚定|更重信念不动摇。","果断|更重决定快。"],
+ ["犹豫|拿不定主意。"],
+ ["性格","品质"],"",[ "坚定"]);
+W("坚定","jiān dìng","形容词",5,"褒","立场、信念不动摇。",
+ ["他的目光十分坚定。","她坚定地朝目标走去。"],
+ ["坚决|更重态度。"],
+ ["动摇|想法变了。"],
+ ["性格"],"",[ "坚决"]);
+W("动摇","dòng yáo","动词",5,"中","想法晃动，不再坚定。",
+ ["困难没有让他动摇。","流言动摇不了我的决心。"],
+ [],
+ ["坚定|信念牢固。","坚决|态度干脆。"],
+ ["动作","性格"],"",[ "坚定"]);
+W("慷慨","kāng kǎi","形容词",6,"褒","肯大方地拿出东西。",
+ ["他慷慨地把伞借给同学。","对有困难的人要慷慨相助。"],
+ ["大方|更口语常用。"],
+ ["吝啬|一毛不拔。"],
+ ["品质"],"",[ "大方"]);
+W("吝啬","lìn sè","形容词",6,"贬","过分爱惜财物，舍不得。",
+ ["吝啬的人交不到真朋友。","他对别人很吝啬。"],
+ ["小气|更口语。"],
+ ["慷慨|肯大方给予。"],
+ ["品质"],"",[ "大方"]);
+W("节俭","jié jiǎn","形容词",5,"褒","过日子省着，不浪费。",
+ ["奶奶一辈子勤俭持家。","节俭是美德。"],
+ ["节约|更常用。"],
+ ["浪费|不该花的花。"],
+ ["品质","生活"],"",[ "节约"]);
+W("正直","zhèng zhí","形容词",5,"褒","做人公正，不歪斜。",
+ ["正直的人敢说真话。","他为人正直，大家都信他。"],
+ ["公正|更强调公平。"],
+ ["狡猾|耍心眼儿。"],
+ ["品质"],"",[ "狡猾"]);
+W("狡猾","jiǎo huá","形容词",5,"贬","耍心眼儿，不老实。",
+ ["狐狸狡猾地骗过了乌鸦。","狡猾的骗子被警察抓住了。"],
+ ["奸诈|程度更重。"],
+ ["诚实|真实不撒谎。","正直|公正不歪。"],
+ ["品质"],"聪明是褒义，狡猾是贬义，别用混。",[]);
+W("忠实","zhōng shí","形容词",5,"褒","忠心可靠，不背叛。",
+ ["小狗是主人忠实的伙伴。","他是书店的忠实顾客。"],
+ ["忠诚|更重信念。"],
+ [],
+ ["品质"],"",[ "忠诚"]);
+W("忠诚","zhōng chéng","形容词",6,"褒","真心忠于人或信念。",
+ ["战士忠诚地守卫边疆。","他对朋友十分忠诚。"],
+ ["忠实|更常用。"],
+ [],
+ ["品质"],"",[ "忠实"]);
+W("乖巧","guāi qiǎo","形容词",4,"褒","听话懂事，惹人喜欢。",
+ ["妹妹乖巧地帮妈妈摆碗筷。","小猫乖巧地趴在腿上。"],
+ ["伶俐|更重聪明机灵。"],
+ ["淘气|调皮捣蛋。"],
+ ["性格"],"",[ "淘气"]);
+W("淘气","táo qì","形容词",4,"中","爱玩爱闹，不听话。",
+ ["淘气的弟弟把墨水打翻了。","小猴子淘气地荡秋千。"],
+ ["顽皮|意思相近。"],
+ ["乖巧|听话懂事。"],
+ ["性格"],"",[ "顽皮"]);
+W("顽皮","wán pí","形容词",4,"中","调皮好玩。",
+ ["顽皮的风把帽子吹跑了。","他顽皮地朝我做了个鬼脸。"],
+ ["淘气|更口语。"],
+ ["乖巧|听话又懂事。"],
+ ["性格"],"",[ "淘气"]);
+W("活泼","huó po","形容词",4,"褒","生动自然，有生气。",
+ ["她是个活泼开朗的女孩。","这篇作文写得活泼有趣。"],
+ ["开朗|多形容性格阳光。"],
+ ["文静|安静不爱动。"],
+ ["性格"],"",[ "开朗"]);
+W("文静","wén jìng","形容词",4,"中","安静斯文，不爱吵闹。",
+ ["她是个文静的小姑娘。","她文静地坐在角落看书。"],
+ [],
+ ["活泼|爱说爱动。","淘气|调皮捣蛋。"],
+ ["性格"],"",[ "活泼"]);
+W("开朗","kāi lǎng","形容词",5,"褒","性格阳光，想得开。",
+ ["他性格开朗，爱交朋友。","开朗的人不容易郁闷。"],
+ ["活泼|更多外在表现。"],
+ ["内向|话不多，心事不外露。"],
+ ["性格"],"",[ "活泼"]);
+W("礼貌","lǐ mào","名词",3,"褒","言语动作谦虚恭敬。",
+ ["见到老师要有礼貌。","他礼貌地向客人问好。"],
+ [],
+ ["粗鲁|说话动作野蛮。"],
+ ["品质","生活"],"",[]);
+W("粗鲁","cū lǔ","形容词",5,"贬","说话做事不文雅。",
+ ["对同学不能粗鲁。","他粗鲁地打断了别人。"],
+ ["粗暴|程度更重。"],
+ ["礼貌|恭敬有礼。"],
+ ["性格","品质"],"",[]);
+W("耐心","nài xīn","形容词",4,"褒","不急不躁，能坚持。",
+ ["老师耐心地讲解难点。","钓鱼最需要耐心。"],
+ [],
+ ["急躁|心里着急上火。"],
+ ["品质"],"",[]);
+W("急躁","jí zào","形容词",5,"贬","遇事着急，不冷静。",
+ ["他性子急躁，容易出错。","别急躁，一步一步来。"],
+ [],
+ ["耐心|不急不躁。","沉着|冷静稳当。"],
+ ["性格"],"",[ "沉着"]);
+W("前进","qián jìn","动词",3,"中","向前行走或发展。",
+ ["队伍冒着风雨前进。","学习像划船，不进则退。"],
+ [],
+ ["后退|向后退。"],
+ ["动作"],"",[ "后退"]);
+W("后退","hòu tuì","动词",3,"中","向后退。",
+ ["看到蛇，他连连后退。","成绩后退了，要找原因。"],
+ ["倒退|往回退。"],
+ ["前进|向前行。"],
+ ["动作"],"",[ "前进"]);
+W("上升","shàng shēng","动词",3,"中","由低往高涨。",
+ ["气球慢慢上升到空中。","气温上升了五度。"],
+ ["上涨|多指水位价钱。"],
+ ["下降|由高往低。"],
+ ["动作","数量"],"",[ "下降"]);
+W("下降","xià jiàng","动词",3,"中","由高往低落。",
+ ["飞机开始下降。","错误率明显下降。"],
+ [],
+ ["上升|由低往高。"],
+ ["动作","数量"],"",[ "上升"]);
+W("提高","tí gāo","动词",3,"中","使位置、程度变高。",
+ ["多读书能提高写作水平。","他提高了嗓门喊我。"],
+ ["提升|更书面。"],
+ ["降低|使变低。"],
+ ["动作","学习"],"",[ "降低"]);
+W("降低","jiàng dī","动词",4,"中","使位置、程度变低。",
+ ["降低音量，别吵到别人。","成本降低了三成。"],
+ [],
+ ["提高|使变高。"],
+ ["动作"],"",[ "提高"]);
+W("奖励","jiǎng lì","动词",4,"褒","对有功者给奖赏。",
+ ["学校奖励了见义勇为的同学。","一朵小红花是老师的奖励。"],
+ ["奖赏|更书面。"],
+ ["惩罚|对过错给处分。"],
+ ["动作","学习"],"",[ "惩罚"]);
+W("惩罚","chéng fá","动词",5,"中","对错误给处分。",
+ ["犯规就要接受惩罚。","大自然会惩罚浪费的人。"],
+ ["处罚|意思相近。"],
+ ["奖励|给奖赏。"],
+ ["动作"],"",[ "奖励"]);
+W("处罚","chǔ fá","动词",5,"中","对犯错误者处理惩戒。",
+ ["违反纪律要受到处罚。","处罚不是目的，改正才是。"],
+ ["惩罚|程度更重。"],
+ ["奖励|给奖赏。"],
+ ["动作"],"",[ "惩罚"]);
+W("同意","tóng yì","动词",3,"中","对意见表示认可。",
+ ["我同意周末去图书馆。","大家一致同意这个方案。"],
+ ["赞成|更口语。"],
+ ["反对|持相反意见。"],
+ ["动作","生活"],"",[ "反对"]);
+W("反对","fǎn duì","动词",4,"中","不赞成，持相反意见。",
+ ["我反对上课吃东西。","没有人反对这个提议。"],
+ [],
+ ["同意|表示认可。","赞成|觉得好。"],
+ ["动作"],"",[ "同意"]);
+W("赞成","zàn chéng","动词",4,"中","觉得对，表示同意。",
+ ["举手赞成的请站起来。","爸爸妈妈都赞成我的计划。"],
+ ["同意|意思相近。"],
+ ["反对|不赞成。"],
+ ["动作"],"",[ "反对"]);
+W("答应","dā ying","动词",3,"中","点头应允别人的请求。",
+ ["他答应借我一本漫画。","妈妈答应周末去看电影。"],
+ ["应允|偏书面。"],
+ ["拒绝|不答应。"],
+ ["动作","生活"],"",[ "拒绝"]);
+W("拒绝","jù jué","动词",4,"中","不接受，不答应。",
+ ["他礼貌地拒绝了邀请。","对陌生人给的东西要拒绝。"],
+ ["谢绝|客气地拒绝。"],
+ ["接受|收下认可。","答应|点头应允。"],
+ ["动作"],"",[ "接受"]);
+W("接受","jiē shòu","动词",4,"中","收下；对事物不排斥。",
+ ["他接受了大家的建议。","我接受了这个任务。"],
+ ["接纳|更书面。"],
+ ["拒绝|不接受。"],
+ ["动作"],"",[ "拒绝"]);
+W("迎接","yíng jiē","动词",4,"中","迎接来到的人或事。",
+ ["我们在校门口迎接新生。","迎接新学期，我准备好了。"],
+ [],
+ ["送别|送走离开的人。"],
+ ["动作","生活"],"",[ "送别"]);
+W("送别","sòng bié","动词",5,"中","送走离去的人。",
+ ["同学们到车站送别老师。","送别时，她眼里含着泪。"],
+ ["送行|陪同离去的人走。"],
+ ["迎接|迎来的人。"],
+ ["动作"],"",[ "迎接"]);
+W("倾听","qīng tīng","动词",5,"褒","细心地听取。",
+ ["他倾听着爷爷讲的故事。","倾听是尊重别人的表现。"],
+ ["聆听|更书面恭敬。"],
+ [],
+ ["动作","品质"],"",[ "聆听"]);
+W("聆听","líng tīng","动词",6,"褒","恭敬认真地听。",
+ ["我们聆听校长的讲话。","静下心来聆听鸟鸣。"],
+ ["倾听|更常用。"],
+ [],
+ ["动作"],"",[ "倾听"]);
+W("模仿","mó fǎng","动词",4,"中","照着样子做。",
+ ["鹦鹉会模仿人说话。","写字要先模仿字帖。"],
+ ["仿照|照着去做。"],
+ ["创造|做出新的来。"],
+ ["动作","学习"],"",[ "创造"]);
+W("创造","chuàng zào","动词",5,"褒","想出做出新的东西。",
+ ["劳动创造了美好生活。","他创造了一项校运会纪录。"],
+ ["创作|多指文艺作品。"],
+ ["模仿|照着别人做。"],
+ ["动作","品质"],"",[ "模仿"]);
+W("修理","xiū lǐ","动词",4,"中","使坏的东西复原。",
+ ["爷爷会修理旧钟表。","自行车坏了，拿去修理。"],
+ ["修补|小处补好。"],
+ ["破坏|把好的弄坏。"],
+ ["动作","生活"],"",[]);
+W("收集","shōu jí","动词",4,"中","把分散的聚拢起来。",
+ ["他喜欢收集邮票。","收集树叶做书签。"],
+ ["搜集|到处寻访着收来。"],
+ ["丢弃|扔掉不要。"],
+ ["动作","学习"],"",[ "丢弃"]);
+W("保存","bǎo cún","动词",4,"中","收存保管，不丢失。",
+ ["奖状被保存得平平整整。","昆虫标本保存完好。"],
+ ["储存|存起来备用。"],
+ ["丢弃|扔掉不要。"],
+ ["动作","生活"],"",[ "丢弃"]);
+W("丢弃","diū qì","动词",5,"中","扔掉不要了。",
+ ["旧课本不要随意丢弃。","他把坏习惯丢掉了。"],
+ ["抛弃|丢开抛开。"],
+ ["保存|收存保管。","收集|聚拢起来。"],
+ ["动作"],"",[ "保存"]);
+W("出发","chū fā","动词",3,"中","离开原地前往目的地。",
+ ["队伍清晨五点出发。","收拾好书包，我们出发吧。"],
+ ["启程|更书面。"],
+ ["返回|回到原地。"],
+ ["动作","生活"],"",[ "返回"]);
+W("返回","fǎn huí","动词",3,"中","回到原来的地方。",
+ ["傍晚，我们返回营地。","他返回教室取雨伞。"],
+ ["回来|回到这里。"],
+ ["出发|离开原地。"],
+ ["动作","生活"],"",[ "出发"]);
+W("靠近","kào jìn","动词",3,"中","向目标接近。",
+ ["小船慢慢靠近岸边。","靠近点，我讲给你听。"],
+ ["接近|意思相近。"],
+ ["远离|离得远远的。"],
+ ["动作"],"",[ "远离"]);
+W("远离","yuǎn lí","动词",4,"中","远远地离开。",
+ ["远离危险的河堤。","他远离家乡去读书。"],
+ [],
+ ["靠近|凑近过来。"],
+ ["动作"],"",[ "靠近"]);
+W("隐藏","yǐn cáng","动词",5,"中","藏起来，不让人发现。",
+ ["松鼠把松果藏在树洞里。","云朵隐藏了月亮。"],
+ ["躲藏|多指人藏身。"],
+ ["暴露|显露出来。"],
+ ["动作"],"",[ "暴露"]);
+W("暴露","bào lù","动词",5,"中","显露出来，被人看见。",
+ ["小偷暴露了行踪。","别把个人信息暴露出去。"],
+ ["显露|显现出来。"],
+ ["隐藏|藏起来。"],
+ ["动作"],"",[ "隐藏"]);
+W("承认","chéng rèn","动词",4,"中","认可；如实说出。",
+ ["他承认打碎了花瓶。","我承认这道题不会做。"],
+ [],
+ ["否认|不承认。"],
+ ["动作","品质"],"",[ "否认"]);
+W("否认","fǒu rèn","动词",5,"中","不承认。",
+ ["他否认动过我的文具盒。","事实是否认不了的。"],
+ [],
+ ["承认|如实认可。"],
+ ["动作"],"",[ "承认"]);
+W("呼喊","hū hǎn","动词",4,"中","大声地喊。",
+ ["他站在山头呼喊伙伴。","观众呼喊着运动员的名字。"],
+ ["呐喊|大声喊，气势足。"],
+ [],
+ ["动作","声音"],"",[]);
+
+
+/* =====================================================================
+ * 词库扩容（二）：景物与性质 / 程度时间 / 成语 / 名词
+ * ===================================================================== */
+W("高大","gāo dà","形容词",3,"中","又高又大。",
+ ["操场边有高大的白杨树。","高大的建筑立在街角。"],
+ [],
+ ["矮小|又矮又小。"],
+ ["景物"],"",[ "矮小"]);
+W("矮小","ǎi xiǎo","形容词",4,"中","又矮又小。",
+ ["别看他个子矮小，力气不小。","灌木丛矮小而茂密。"],
+ [],
+ ["高大|又高又大。"],
+ ["景物"],"",[ "高大"]);
+W("挺拔","tǐng bá","形容词",5,"褒","又高又直，很有精神。",
+ ["白杨树挺拔地立在路边。","升旗手身姿挺拔。"],
+ ["笔直|只说直，不说高。"],
+ ["弯曲|弯弯的。"],
+ ["景物"],"",[ "笔直"]);
+W("弯曲","wān qū","形容词",4,"中","不直，弯弯的。",
+ ["山路弯曲，绕来绕去。","小河弯曲地流向远方。"],
+ ["蜿蜒|弯弯曲曲延伸，更书面。"],
+ ["笔直|直直的。"],
+ ["景物"],"",[ "笔直"]);
+W("笔直","bǐ zhí","形容词",4,"中","很直，像笔画的一样。",
+ ["哨兵笔直地站在门口。","笔直的公路通向远方。"],
+ ["挺拔|还带着高。"],
+ ["弯曲|弯弯的。"],
+ ["景物"],"",[ "弯曲"]);
+W("光滑","guāng huá","形容词",4,"中","表面平，不涩手。",
+ ["鹅卵石被水冲得光滑发亮。","大理石地面很光滑。"],
+ [],
+ ["粗糙|摸起来剌手。"],
+ ["景物"],"",[ "粗糙"]);
+W("粗糙","cū cāo","形容词",5,"中","表面不细，不光滑。",
+ ["冬风吹得脸颊粗糙。","粗糙的树皮像老人的手。"],
+ [],
+ ["光滑|平滑不涩。"],
+ ["景物"],"",[ "光滑"]);
+W("坚硬","jiān yìng","形容词",4,"中","又硬又结实。",
+ ["岩石坚硬，锤子砸不动。","坚硬的外壳保护着种子。"],
+ ["硬邦邦|更口语。"],
+ ["柔软|软乎乎的。"],
+ ["景物"],"",[ "柔软"]);
+W("柔软","róu ruǎn","形容词",4,"中","软和，不硬。",
+ ["草地柔软得像地毯。","毛巾晒过后很柔软。"],
+ ["绵软|更口语。"],
+ ["坚硬|硬邦邦。"],
+ ["景物","生活"],"",[ "坚硬"]);
+W("肥沃","féi wò","形容词",6,"褒","土地养分足，庄稼长得好。",
+ ["肥沃的田野稻浪滚滚。","黑土地以肥沃出名。"],
+ [],
+ ["贫瘠|养分少，长不好。"],
+ ["自然","景物"],"",[ "贫瘠"]);
+W("贫瘠","pín jí","形容词",6,"中","土地瘦，长不好庄稼。",
+ ["贫瘠的山坡种满了树。","种子在贫瘠的石缝里发芽。"],
+ [],
+ ["肥沃|养分充足。","富饶|物产丰富。"],
+ ["自然"],"",[ "肥沃"]);
+W("富饶","fù ráo","形容词",6,"褒","物产丰富。",
+ ["富饶的江南是鱼米之乡。","大海富饶，取之有度。"],
+ ["富足|吃穿不愁。"],
+ ["贫瘠|土地瘦。"],
+ ["自然","景物"],"",[ "贫瘠"]);
+W("繁华","fán huá","形容词",5,"中","城镇兴旺热闹。",
+ ["繁华的街道灯火通明。","上海是繁华的大都市。"],
+ [],
+ ["荒凉|冷落萧条。"],
+ ["景物","生活"],"",[ "荒凉"]);
+W("荒凉","huāng liáng","形容词",5,"中","冷落萧条，没有人气。",
+ ["荒凉的戈壁滩一眼望不到头。","老宅荒凉了许多。"],
+ [],
+ ["繁华|兴旺热闹。"],
+ ["景物"],"",[ "繁华"]);
+W("清澈","qīng chè","形容词",5,"褒","水干净透亮。",
+ ["溪水清澈见底。","清澈的湖面映着白云。"],
+ ["清亮|口语些。"],
+ ["浑浊|又脏又混。"],
+ ["自然","景物"],"",[ "浑浊"]);
+W("浑浊","hún zhuó","形容词",6,"中","又脏又混，看不清底。",
+ ["洪水过后，河水浑浊。","浑浊的泥水里看不清鱼。"],
+ [],
+ ["清澈|干净透亮。"],
+ ["自然"],"",[ "清澈"]);
+W("崭新","zhǎn xīn","形容词",5,"中","全新，像刚做出来。",
+ ["他穿着崭新的校服。","崭新的课本散着墨香。"],
+ ["簇新|更书面。"],
+ ["陈旧|用得久了。"],
+ ["生活"],"",[ "陈旧"]);
+W("陈旧","chén jiù","形容词",5,"中","旧的，用得久了。",
+ ["老屋的家具陈旧却结实。","陈旧的照片留着回忆。"],
+ ["老旧|意思相近。"],
+ ["崭新|全新的。","新鲜|才有的。"],
+ ["生活"],"",[ "崭新"]);
+W("新鲜","xīn xiān","形容词",3,"中","刚产生，不陈旧。",
+ ["清晨的空气真新鲜。","菜市场卖新鲜的蔬菜。"],
+ [],
+ ["陈旧|久了的。"],
+ ["生活"],"",[ "陈旧"]);
+W("完整","wán zhěng","形容词",4,"中","没有损坏，保全着。",
+ ["蛋壳完整地裂成两半。","这套书保存得很完整。"],
+ ["完好|没有损坏。"],
+ ["破碎|碎了坏了。"],
+ ["程度"],"",[ "破碎"]);
+W("破碎","pò suì","形容词",4,"中","碎了，不完整。",
+ ["花盆摔得破碎。","破碎的玻璃要小心清理。"],
+ ["破裂|裂开了。"],
+ ["完整|完完整整。"],
+ ["程度"],"",[ "完整"]);
+W("冰凉","bīng liáng","形容词",4,"中","像冰一样凉。",
+ ["井水冰凉刺骨。","他的手冰凉冰凉的。"],
+ ["冰冷|温度更低。"],
+ ["滚烫|热得烫手。"],
+ ["自然"],"",[ "滚烫"]);
+W("滚烫","gǔn tàng","形容词",6,"中","热得像滚水烫手。",
+ ["刚出锅的包子滚烫。","滚烫的汤要吹一吹再喝。"],
+ ["火热|像火一样热。"],
+ ["冰凉|像冰一样凉。"],
+ ["自然"],"",[ "冰凉"]);
+W("慢慢","màn màn","副词",3,"中","速度低，不着急地。",
+ ["爷爷慢慢悠悠地散步。","天色慢慢暗了下来。"],
+ ["渐渐|多形容变化。","缓缓|更书面。"],
+ [],
+ ["速度"],"渐渐只形容变化，动作慢要说慢慢走。",[ "渐渐"]);
+W("缓缓","huǎn huǎn","副词",5,"中","慢慢地，不急促。",
+ ["国旗缓缓升起。","小船缓缓驶离码头。"],
+ ["慢慢|更口语。"],
+ [],
+ ["速度"],"",[ "慢慢"]);
+W("悄悄","qiāo qiāo","副词",4,"中","不让人知道地。",
+ ["他悄悄把纸条递给我。","月亮悄悄躲进云里。"],
+ ["偷偷|背着人做。"],
+ [],
+ ["速度","动作"],"",[ "偷偷"]);
+W("偷偷","tōu tōu","副词",4,"中","瞒着人悄悄地。",
+ ["小猫偷偷叼走一块鱼。","他偷偷练习，想给大家惊喜。"],
+ ["悄悄|不发出动静。"],
+ [],
+ ["速度"],"",[ "悄悄"]);
+W("匆忙","cōng máng","形容词",4,"中","急急忙忙，赶时间。",
+ ["他匆忙背起书包跑出门。","别匆忙，看清路再走。"],
+ ["急忙|意思相近。"],
+ ["从容|不慌不忙。"],
+ ["速度"],"",[ "从容"]);
+W("急忙","jí máng","形容词",4,"中","心里急，动作快。",
+ ["下雨了，我急忙收衣服。","他急忙扶住摔倒的弟弟。"],
+ ["连忙|紧接着赶忙。","匆忙|多指赶时间。"],
+ ["从容|不慌不忙。"],
+ ["速度"],"",[ "匆忙"]);
+W("连忙","lián máng","副词",4,"中","动作赶紧，紧接着。",
+ ["见老师来了，他连忙坐好。","我连忙把伞递给他。"],
+ ["急忙|意思相近。"],
+ [],
+ ["速度"],"",[ "急忙"]);
+W("一直","yī zhí","副词",3,"中","表示动作持续不断。",
+ ["小树一直长到了二楼。","他一直保持着第一名。"],
+ ["始终|更书面。"],
+ [],
+ ["时间"],"",[ "始终"]);
+W("始终","shǐ zhōng","副词",5,"中","从头到尾持续不变。",
+ ["他始终保持着微笑。","比赛始终很激烈。"],
+ ["一直|更口语。"],
+ [],
+ ["时间"],"",[ "一直"]);
+W("永远","yǒng yuǎn","副词",4,"中","时间长久，没有止境。",
+ ["我永远记得这次运动会。","友谊永远不变。"],
+ ["永久|更书面。"],
+ ["暂时|只是短时间的。"],
+ ["时间"],"",[ "暂时"]);
+W("暂时","zàn shí","形容词",5,"中","短时间内的，不是长久。",
+ ["比赛暂时停止。","这只是暂时的困难。"],
+ ["临时|暂且安排的。"],
+ ["永远|长久不变。","长久|时间很长。"],
+ ["时间"],"",[ "永远"]);
+W("长久","cháng jiǔ","形容词",4,"中","时间很长。",
+ ["友谊要靠真心才长久。","这份礼物饱含长久的祝福。"],
+ [],
+ ["短暂|一会儿就过去。","暂时|只是眼前。"],
+ ["时间"],"",[ "短暂"]);
+W("短暂","duǎn zàn","形容词",6,"中","时间很短。",
+ ["相遇虽然短暂，情谊长久。","彩虹的美丽很短暂。"],
+ [],
+ ["长久|时间很长。","永远|没有尽头。"],
+ ["时间"],"",[ "长久"]);
+W("尤其","yóu qí","副词",5,"中","更进一步，特别地。",
+ ["我爱吃水果，尤其爱吃芒果。","大家都很努力，小雨尤其认真。"],
+ [],
+ [],
+ ["程度"],"尤其在多个里挑出一个更突出的。",[]);
+W("一丝不苟","yī sī bù gǒu","成语",5,"褒","连一丝马虎都没有。",
+ ["他一丝不苟地核对每道题。","老师批改作业一丝不苟。"],
+ ["严谨|更书面，处处严密。"],
+ ["马马虎虎|粗心大意。"],
+ ["品质","学习"],"",[ "马马虎虎"]);
+W("马马虎虎","mǎ mǎ hū hū","成语",4,"贬","做事草率，不认真。",
+ ["作业马马虎虎，错题不少。","他做事总是马马虎虎。"],
+ ["粗心大意|不小心。"],
+ ["一丝不苟|分毫不差。"],
+ ["品质","学习"],"",[ "一丝不苟"]);
+W("小心翼翼","xiǎo xīn yì yì","成语",6,"褒","十分小心，一点不大意。",
+ ["他小心翼翼地捧着奖杯。","我小心翼翼地捧着蚕宝宝。"],
+ ["谨慎|处处留心。"],
+ ["粗心大意|毫不在意。"],
+ ["品质"],"",[ "粗心大意"]);
+W("粗心大意","cū xīn dà yì","成语",5,"贬","做事不细心，不在乎。",
+ ["粗心大意让他丢了钥匙。","考试要细心，别粗心大意。"],
+ ["马马虎虎|做事草率不认真。"],
+ ["小心翼翼|十分小心。"],
+ ["品质","学习"],"",[ "小心翼翼"]);
+W("全力以赴","quán lì yǐ fù","成语",5,"褒","拿出全部力量去做。",
+ ["为了比赛，全班全力以赴。","他全力以赴地备考。"],
+ ["竭尽全力|把力气用尽。"],
+ ["敷衍了事|应付了事。"],
+ ["品质","学习"],"",[ "竭尽全力"]);
+W("竭尽全力","jié jìn quán lì","成语",6,"褒","用尽全部力量。",
+ ["他竭尽全力冲过终点。","我们竭尽全力修好堤坝。"],
+ ["全力以赴|拿出全部力量。"],
+ ["敷衍了事|马虎应付。"],
+ ["品质"],"",[ "全力以赴"]);
+W("敷衍了事","fū yǎn liǎo shì","成语",6,"贬","应付着做完，不认真。",
+ ["值日不能敷衍了事。","他写作业总是敷衍了事。"],
+ ["草草了事|匆匆做完。"],
+ ["全力以赴|拿出全部力量。"],
+ ["品质","学习"],"",[ "全力以赴"]);
+W("坚持不懈","jiān chí bù xiè","成语",6,"褒","坚持做下去，不松懈。",
+ ["他坚持不懈地练琴。","坚持不懈地晨练让他更强壮。"],
+ ["持之以恒|长久坚持。"],
+ ["半途而废|中途放弃。"],
+ ["品质","学习"],"",[ "持之以恒"]);
+W("持之以恒","chí zhī yǐ héng","成语",6,"褒","长久地坚持下去。",
+ ["学习要持之以恒。","持之以恒才能练好字。"],
+ ["坚持不懈|不松劲。"],
+ ["半途而废|做到一半扔下。"],
+ ["品质"],"",[ "坚持不懈"]);
+W("半途而废","bàn tú ér fèi","成语",5,"贬","事情没做完就停止。",
+ ["学琴不能半途而废。","坚持到底，别半途而废。"],
+ [],
+ ["坚持不懈|坚持不松懈。","持之以恒|长久坚持。"],
+ ["品质"],"",[ "坚持不懈"]);
+W("拾金不昧","shí jīn bù mèi","成语",5,"褒","捡到钱财不藏起来。",
+ ["拾金不昧的同学受到表扬。","他拾金不昧，把钱包还了回去。"],
+ [],
+ [],
+ ["品质"],"昧是隐藏的意思：不把捡到的钱藏起来。",[]);
+W("舍己为人","shě jǐ wèi rén","成语",5,"褒","牺牲自己的利益帮助别人。",
+ ["消防员舍己为人的精神可敬。","他舍己为人，把救生圈让了出去。"],
+ ["大公无私|一心为公。"],
+ ["自私自利|只顾自己。"],
+ ["品质"],"",[ "大公无私"]);
+W("大公无私","dà gōng wú sī","成语",6,"褒","一心为公，没有私心。",
+ ["班长处事大公无私。","包拯断案大公无私。"],
+ ["舍己为人|舍出自己帮人。"],
+ ["自私自利|只想着自己。"],
+ ["品质"],"",[ "舍己为人"]);
+W("自私自利","zì sī zì lì","成语",5,"贬","只顾自己的好处。",
+ ["自私自利的人没人喜欢。","别做自私自利的事。"],
+ [],
+ ["大公无私|一心为公。","舍己为人|牺牲自己帮人。"],
+ ["品质"],"",[ "大公无私"]);
+W("雪中送炭","xuě zhōng sòng tàn","成语",5,"褒","在别人急需时给予帮助。",
+ ["同桌借我雨伞，真是雪中送炭。","危难时的帮助是雪中送炭。"],
+ [],
+ ["雪上加霜|使处境更糟。"],
+ ["品质"],"",[ "雪上加霜"]);
+W("雪上加霜","xuě shàng jiā shuāng","成语",5,"中","接连遭灾，处境更糟。",
+ ["车胎爆了又下大雨，雪上加霜。","生病又丢了钱包，雪上加霜。"],
+ [],
+ ["雪中送炭|急需时帮忙。"],
+ ["品质"],"",[ "雪中送炭"]);
+W("锦上添花","jǐn shàng tiān huā","成语",5,"褒","好上加好。",
+ ["奖章让演出锦上添花。","彩带把教室装饰得锦上添花。"],
+ [],
+ ["雪上加霜|坏事加坏。"],
+ ["生活"],"",[ "雪上加霜"]);
+W("井井有条","jǐng jǐng yǒu tiáo","成语",5,"褒","整齐不乱，有条理。",
+ ["书架整理得井井有条。","他的笔记井井有条。"],
+ ["有条不紊|从容不乱。"],
+ ["乱七八糟|混乱无序。"],
+ ["生活","品质"],"",[ "乱七八糟"]);
+W("有条不紊","yǒu tiáo bù wěn","成语",6,"褒","有次序，不慌乱。",
+ ["他有条不紊地收拾行装。","救援工作有条不紊地进行。"],
+ ["井井有条|整齐不乱。"],
+ ["乱七八糟|乱糟糟。"],
+ ["生活"],"",[ "井井有条"]);
+W("乱七八糟","luàn qī bā zāo","成语",4,"贬","混乱无序。",
+ ["房间被弟弟翻得乱七八糟。","思路乱七八糟，理不清头绪。"],
+ ["杂乱无章|无条理。"],
+ ["井井有条|整齐有序。"],
+ ["生活"],"",[ "井井有条"]);
+W("杂乱无章","zá luàn wú zhāng","成语",6,"贬","多而乱，没有条理。",
+ ["桌面杂乱无章。","文章杂乱无章，要重新理。"],
+ ["乱七八糟|更口语。"],
+ ["井井有条|整齐有序。"],
+ ["生活"],"",[ "井井有条"]);
+W("目不转睛","mù bù zhuǎn jīng","成语",5,"中","看得专注，眼珠不转。",
+ ["他目不转睛地盯着魔术。","大家目不转睛地看着比赛。"],
+ ["聚精会神|精神集中。"],
+ ["东张西望|四处乱看。"],
+ ["学习","神态"],"",[ "东张西望"]);
+W("东张西望","dōng zhāng xī wàng","成语",4,"中","向四处乱看。",
+ ["上课要专心，别东张西望。","他在站台上东张西望找妈妈。"],
+ ["左顾右盼|向左右看。"],
+ ["目不转睛|紧盯不放。"],
+ ["动作","神态"],"",[ "目不转睛"]);
+W("情不自禁","qíng bú zì jīn","成语",5,"中","感情激动，控制不住自己。",
+ ["精彩的表演让大家情不自禁鼓掌。","听到好消息，他情不自禁地笑了。"],
+ ["不由自主|自己控制不住。"],
+ [],
+ ["情绪"],"",[ "不由自主"]);
+W("不由自主","bù yóu zì zhǔ","成语",5,"中","由不得自己。",
+ ["音乐一响，她不由自主跳起舞。","困得他不由自主地点头。"],
+ ["情不自禁|多指感情激动。"],
+ [],
+ ["情绪"],"",[ "情不自禁"]);
+W("兴致勃勃","xìng zhì bó bó","成语",5,"褒","兴趣浓厚的样子。",
+ ["大家兴致勃勃地讨论春游。","他兴致勃勃地展示新玩具。"],
+ ["兴高采烈|情绪更高涨。"],
+ ["垂头丧气|情绪低落。"],
+ ["情绪"],"",[ "兴高采烈"]);
+W("精神抖擞","jīng shén dǒu sǒu","成语",5,"褒","精神振奋，有劲头。",
+ ["升旗手们精神抖擞。","爷爷晨练回来精神抖擞。"],
+ ["神采奕奕|面色光彩。"],
+ ["无精打采|打不起精神。","筋疲力尽|力气用光。"],
+ ["神态"],"",[ "无精打采"]);
+W("筋疲力尽","jīn pí lì jìn","成语",5,"中","力气用完，非常累。",
+ ["爬到山顶，大家筋疲力尽。","忙了一天，他筋疲力尽。"],
+ ["精疲力竭|意思相同。"],
+ ["精神抖擞|劲头十足。"],
+ ["神态"],"",[ "精神抖擞"]);
+W("喜出望外","xǐ chū wàng wài","成语",5,"褒","遇到出乎意料的好事而特别高兴。",
+ ["收到远方的来信，奶奶喜出望外。","考试得了满分，他喜出望外。"],
+ [],
+ ["大失所望|非常失望。"],
+ ["情绪"],"",[ "大失所望"]);
+W("大失所望","dà shī suǒ wàng","成语",5,"中","非常失望。",
+ ["比赛结果让球迷大失所望。","他没来，我大失所望。"],
+ [],
+ ["喜出望外|格外惊喜。"],
+ ["情绪"],"",[ "喜出望外"]);
+W("名副其实","míng fù qí shí","成语",5,"褒","名称或名声与实际相符合。",
+ ["他成了名副其实的小画家。","黄山是名副其实的奇山。"],
+ ["名不虚传|名实相符还传扬开。"],
+ ["名不副实|名实不符。"],
+ ["程度"],"",[ "名不副实"]);
+W("名不副实","míng bù fù shí","成语",6,"贬","名声与实际不相符。",
+ ["吹得天花乱坠，其实名不副实。","这家店名不副实。"],
+ [],
+ ["名副其实|名实相副。"],
+ ["程度"],"",[ "名副其实"]);
+W("眉开眼笑","méi kāi yǎn xiào","成语",5,"褒","高兴得眉眼都舒展开。",
+ ["奶奶眉开眼笑地接过礼物。","好消息让他眉开眼笑。"],
+ ["喜笑颜开|满脸笑容。"],
+ ["愁眉苦脸|发愁的样子。"],
+ ["情绪","神态"],"",[ "愁眉苦脸"]);
+W("愁眉苦脸","chóu méi kǔ liǎn","成语",5,"中","愁得眉头紧皱。",
+ ["他愁眉苦脸地坐在桌前。","别愁眉苦脸，办法总比困难多。"],
+ ["愁眉不展|眉头紧锁。"],
+ ["眉开眼笑|眉眼舒展。"],
+ ["情绪","神态"],"",[ "眉开眼笑"]);
+W("优点","yōu diǎn","名词",3,"中","好之处，长处。",
+ ["乐于助人是他的优点。","每个人都有优点。"],
+ ["长处|意思相近。"],
+ ["缺点|不足之处。","短处|比不上的地方。"],
+ ["品质"],"",[ "缺点"]);
+W("缺点","quē diǎn","名词",3,"中","不足之处。",
+ ["粗心是他最大的缺点。","敢承认缺点的人了不起。"],
+ ["短处|意思相近。"],
+ ["优点|好之处。","长处|好的地方。"],
+ ["品质"],"",[ "优点"]);
+W("长处","cháng chu","名词",4,"中","特长，好的地方。",
+ ["他的长处是跑步快。","要看到别人的长处。"],
+ ["优点|更常用。"],
+ ["短处|不足之处。"],
+ ["品质"],"",[ "短处"]);
+W("短处","duǎn chù","名词",4,"中","不足的地方。",
+ ["每个人都有短处。","拿自己的短处比别人长处，越比越丧气。"],
+ ["缺点|更常用。"],
+ ["长处|好的地方。"],
+ ["品质"],"",[ "长处"]);
+W("开头","kāi tóu","名词",3,"中","开始的部分。",
+ ["作文开头要引人入胜。","故事的开头很有趣。"],
+ ["开端|更书面。"],
+ ["结尾|最后的部分。"],
+ ["时间","学习"],"",[ "结尾"]);
+W("结尾","jié wěi","名词",4,"中","最后的部分。",
+ ["结尾点题，作文更完整。","电影的结尾很感人。"],
+ [],
+ ["开头|开始的部分。"],
+ ["时间"],"",[ "开头"]);
+W("开端","kāi duān","名词",6,"中","开始，起头。",
+ ["良好的开端是成功的一半。","新学期是新的开端。"],
+ ["开头|更口语。"],
+ ["结尾|最后部分。"],
+ ["时间"],"",[ "结尾"]);
+W("朋友","péng you","名词",2,"褒","彼此有交情的人。",
+ ["朋友之间要互相帮助。","我和小雨是好朋友。"],
+ ["伙伴|一起做事的人。"],
+ ["敌人|敌对的人。"],
+ ["人物","生活"],"",[ "敌人"]);
+W("敌人","dí rén","名词",3,"中","敌对的人。",
+ ["团结起来，敌人就没办法。","解放军消灭了敌人。"],
+ [],
+ ["朋友|有交情的人。"],
+ ["人物"],"",[ "朋友"]);
+W("光明","guāng míng","形容词",4,"褒","亮；有希望。",
+ ["隧道的尽头是光明。","前途一片光明。"],
+ [],
+ ["黑暗|没有光。"],
+ ["自然","程度"],"",[ "黑暗"]);
+W("黑暗","hēi àn","形容词",4,"中","没有光。",
+ ["山洞里一片黑暗。","点亮蜡烛，赶走黑暗。"],
+ [],
+ ["光明|亮堂有希望。"],
+ ["自然"],"",[ "光明"]);
+W("白天","bái tiān","名词",3,"中","日出到日落的时间。",
+ ["白天上学，晚上读课外书。","猫头鹰白天睡觉。"],
+ ["白昼|更书面。"],
+ ["夜晚|日落之后。"],
+ ["时间"],"",[ "夜晚"]);
+W("夜晚","yè wǎn","名词",3,"中","夜间，日落到日出。",
+ ["宁静的夜晚虫鸣阵阵。","夜晚的星空真美。"],
+ ["夜里|口语些。"],
+ ["白天|日出到日落。"],
+ ["时间","自然"],"",[ "白天"]);
+W("起点","qǐ diǎn","名词",5,"中","开始的地方。",
+ ["学校是知识的起点。","长跑的起点设在校门口。"],
+ [],
+ ["终点|到达的地方。"],
+ ["空间"],"",[ "终点"]);
+W("终点","zhōng diǎn","名词",5,"中","结束、到达的地方。",
+ ["他第一个冲过终点。","坚持走，终点就在前方。"],
+ [],
+ ["起点|开始的地方。"],
+ ["空间"],"",[ "起点"]);
+
+
+/* =====================================================================
+ * 二、辨析配对库（人工精修的高频易混对）
+ * rows 五维：weight 语义轻重 / scope 使用范围 / color 感情色彩 / coll 搭配习惯 / pos 词性
+ * 只写确实存在差异的维度（null = 该维度基本相同，辨析视图不渲染该行）。
+ * swap: true=大多数语境可互换（出"句中替换判断"题答"意思基本不变"）
+ * ===================================================================== */
+const CONTRAST_DB={
+"寂静|安静":{
+ rows:{weight:["很重：一点声音也没有","较轻：声音小、不吵"],
+       scope:["深夜、山谷、空屋","教室、病房、图书馆"],
+       coll:["一片寂静 / 死一般寂静","保持安静 / 安静一点"]},
+ scene:{ctx:"校园里的两个时刻",
+   a:"深夜的校园一片寂静，只有风吹树叶的沙沙声。",
+   b:"自习课上，教室里很安静，只听见翻书声。",
+   better:"寂静",why:"深夜要突出“一点声音都没有”，用程度更重的“寂静”更贴切。"},
+ pitfall:"“安静”可以说“安静一点”，“寂静”不能这么说。",swap:false},
+"安静|宁静":{
+ rows:{weight:["程度一般，日常场合","更深，带安宁的味道"],
+       scope:["教室、病房、图书馆","夜晚、乡村、内心"],
+       coll:["保持安静","宁静的夜晚"]},
+ scene:{ctx:"一个下午，一个夜晚",
+   a:"病房里很安静，病人都在休息。",
+   b:"宁静的夏夜，虫鸣伴着月光。",
+   better:"宁静",why:"夏夜的村野透着安宁祥和，用“宁静”更有意境。"},
+ pitfall:"形容内心安稳时多用“宁静”：心里宁静。",swap:true},
+"高兴|愉快":{
+ rows:{scope:["一时的情绪，口语书面都行","持续的心情状态，偏书面"],
+       coll:["很高兴见到你","心情愉快 / 愉快地度过"]},
+ scene:{ctx:"两个快乐的瞬间",
+   a:"收到生日礼物，他高兴得跳了起来。",
+   b:"整个假期，他过得非常愉快。",
+   better:"高兴",why:"一时外露的喜悦用“高兴”更自然；“愉快”多形容一段时间的舒畅心情。"},
+ pitfall:"跳起来、笑出声这种一时激动用“高兴”；“心情愉快”更书面。",swap:false},
+"高兴|兴奋":{
+ rows:{weight:["平静的快乐","强烈：情绪被点燃，坐不住"]},
+ scene:{ctx:"考试之后与春游前夜",
+   a:"考了满分，他心里很高兴。",
+   b:"明天要去春游，他兴奋得睡不着觉。",better:null,
+   why:"两句都合适：平静的喜悦用高兴，激动的状态用兴奋。"},
+ pitfall:"高兴不等于兴奋：形容平静的快乐不能用兴奋。",swap:false},
+"希望|渴望":{
+ rows:{weight:["一般地想着实现","像口渴一样迫切"],
+       coll:["希望你能来","渴望知识 / 渴望自由"]},
+ scene:{ctx:"两个愿望",
+   a:"我希望暑假能去看大海。",
+   b:"山里的孩子渴望读到更多的书。",better:null,
+   why:"程度不同：一般的愿望用希望，迫切到像口渴一样才用渴望。"},
+ pitfall:"渴望程度最深，一般愿望用希望就行，别动不动就“渴望”。",swap:false},
+"希望|盼望":{
+ rows:{scope:["心里想着，不一定急","睁大眼睛等着，殷切"],
+       coll:["希望你进步","盼望爸爸回来"]},
+ scene:{ctx:"教室里与车站旁",
+   a:"老师希望我们人人爱上读书。",
+   b:"我天天盼望在外地工作的爸爸回家。",
+   better:"盼望",why:"“盼望”多了一层“眼巴巴等着”的急切，用在这里更传情。"},
+ pitfall:"盼望比希望更急切，常和“天天”“早日”连用。",swap:true},
+"保护|爱护":{
+ rows:{scope:["使人或物不受损害","带着爱惜之情对待人或公物"],
+       coll:["保护眼睛 / 保护环境","爱护公物 / 爱护花草"]},
+ scene:{ctx:"两个场景",
+   a:"警察叔叔日夜保护着大家的安全。",
+   b:"我们要爱护教室里的桌椅。",better:null,
+   why:"保护重在“使不受伤害”；爱护重在“像爱惜宝贝一样对待”。"},
+ pitfall:"“爱护公物”是固定说法；“保卫祖国”则要用“保卫”。",swap:false},
+"珍惜|爱惜":{
+ rows:{weight:["更郑重：把……看得贵重","日常：因为爱而不浪费"],
+       scope:["时间、机会、感情","粮食、课本、物品"],
+       coll:["珍惜时间","爱惜粮食"]},
+ scene:{ctx:"两件该省着的事",
+   a:"我们要珍惜小学阶段的每一天。",
+   b:"他爱惜课本，每本都包了书皮。",better:null,
+   why:"对时间、机会、感情用“珍惜”；对具体的物品、粮食用“爱惜”。"},
+ pitfall:"时间用“珍惜”更地道，物品用“爱惜”。",swap:true},
+"继续|连续":{
+ rows:{pos:["动词：接着做下去","动词/副词：一个接一个"],
+       coll:["继续写作业","连续三天"]},
+ scene:{ctx:"课堂上的两种节奏",
+   a:"休息五分钟后，我们继续上课。",
+   b:"他连续三年被评为三好学生。",better:null,
+   why:"“继续”中间可以停，“连续”中间不能断。"},
+ pitfall:"“连续下雨三天”对；“继续下雨三天”不对。",swap:false},
+"仔细|认真":{
+ rows:{scope:["注意细节，看得细","态度端正，不敷衍"],
+       coll:["仔细检查","认真学习"]},
+ scene:{ctx:"考场内外",
+   a:"交卷前，他仔细检查了三遍。",
+   b:"上课时，大家都在认真听讲。",better:null,
+   why:"看细节用“仔细”，说态度用“认真”；“仔细检查”两者都通。"},
+ pitfall:"“认真听讲”说态度；“仔细听讲”侧重听清每个字。",swap:true},
+"突然|忽然":{
+ rows:{pos:["形容词兼副词：突然的事件","只作副词"]},
+ scene:{ctx:"一阵急雨",
+   a:"天空突然下起了大雨。",
+   b:"他走着走着，忽然停住了脚步。",better:null,
+   why:"意思几乎一样；“突然”还能当形容词用：突然的消息。"},
+ pitfall:"“突然”可以作定语：突然事件；“忽然”不能这样说。",swap:true},
+"立刻|马上":{
+ rows:{coll:["立刻去做","马上就要放假了"]},
+ scene:{ctx:"两个动作很快的时刻",
+   a:"听到哨声，他立刻站直了身子。",
+   b:"别急，电影马上就要开场了。",better:null,
+   why:"几乎可互换；“马上”还能表示“很快就要”，“立刻”强调紧跟着发生。"},
+ pitfall:"“马上要过节了”自然，“立刻要过节了”别扭。",swap:true},
+"美丽|漂亮":{
+ rows:{scope:["多形容景色、事物","人和物、事情办得好都行"],
+       coll:["美丽的风景","漂亮的花裙子 / 干得漂亮"]},
+ scene:{ctx:"游湖与穿衣",
+   a:"西湖的景色美丽动人。",
+   b:"妹妹穿着漂亮的花裙子。",better:null,
+   why:"夸景色用“美丽”更雅；夸人和衣物，口语里多用“漂亮”。"},
+ pitfall:"“这件事办得真漂亮”不能换成“美丽”。",swap:true},
+"坚固|牢固":{
+ rows:{scope:["建筑物、工事等看得见的实物","基础、结合、观念、友谊"],
+       coll:["坚固的桥梁","牢固的友谊 / 基础牢固"]},
+ scene:{ctx:"一座桥，一份情",
+   a:"这座石桥十分坚固，百年不倒。",
+   b:"他们俩的友谊非常牢固。",better:null,
+   why:"看得见的实体用“坚固”，抽象的结合用“牢固”。"},
+ pitfall:"“牢固的友谊”对，“坚固的友谊”别扭。",swap:false},
+"宽阔|辽阔":{
+ rows:{scope:["马路、操场等具体场所","草原、海洋、国土，望不到边"],
+       coll:["宽阔的马路","辽阔的草原"]},
+ scene:{ctx:"路上与草原上",
+   a:"宽阔的马路上车来车往。",
+   b:"辽阔的草原上牛羊成群。",better:null,
+   why:"马路再宽也望不到边，用“宽阔”；草原大海用“辽阔”。"},
+ pitfall:"“辽阔的马路”不行；“宽阔的草原”却可以说。",swap:false},
+"经常|偶尔":{
+ rows:{scope:["大多数时候","间或有一次"],
+       coll:["经常锻炼","偶尔出错"]},
+ scene:{ctx:"两个同学的习惯",
+   a:"他经常去图书馆看书。",
+   b:"周末他只是偶尔打打球。",better:null,
+   why:"频率正相反：经常是“几乎每次”，偶尔是“偶尔有一次”。"},
+ pitfall:"别把“偶尔”写成“偶然”：偶然多指巧遇、意外。",swap:false},
+"生气|愤怒":{
+ rows:{weight:["程度轻：日常的不满","程度重：怒火很大"],
+       scope:["日常小事","严重的不义之事"]},
+ scene:{ctx:"小事与大事",
+   a:"弟弟弄坏了作业本，我有点生气。",
+   b:"看到有人欺负小同学，大家非常愤怒。",better:null,
+   why:"小事用“生气”，面对严重的坏事才用“愤怒”。"},
+ pitfall:"作文里“愤怒”要留给真正让人怒火中烧的事。",swap:false},
+"害怕|恐惧":{
+ rows:{weight:["日常的怕，口语","更强、更书面"],
+       scope:["怕黑、怕发言","灾难、危险带来的怕"]},
+ scene:{ctx:"两种怕",
+   a:"第一次上台，他有点害怕。",
+   b:"面对灾难，人们心中充满恐惧。",better:null,
+   why:"日常的怕用“害怕”，巨大的危险引起的怕用“恐惧”。"},
+ pitfall:"“恐惧”程度重，写小事用“害怕”就够。",swap:true},
+"相信|信任":{
+ rows:{scope:["认为某句话、某件事是真的","觉得人可靠，敢托付"],
+       coll:["我相信他说的","信任他 / 值得信任"]},
+ scene:{ctx:"两份安心",
+   a:"我相信他这次能考好。",
+   b:"老师信任我，把教室钥匙交给我保管。",better:null,
+   why:"相信针对“话、事”，信任针对“人”，还带着托付。"},
+ pitfall:"“我相信他”有两种意思：信他的话，或信他这个人。",swap:false},
+"表扬|称赞":{
+ rows:{scope:["多用于上对下","谁夸谁都行"],
+       coll:["受到老师表扬","称赞他勇敢"]},
+ scene:{ctx:"两种夸奖",
+   a:"老师表扬了主动打扫卫生的同学。",
+   b:"客人们纷纷称赞饺子好吃。",better:null,
+   why:"老师家长夸学生多用“表扬”；平辈之间、夸东西用“称赞”。"},
+ pitfall:"“表扬”有公开鼓励的意思，“称赞”只是夸。",swap:true},
+"满意|满足":{
+ rows:{scope:["对人或结果的评价","觉得够了，不再想要"],
+       coll:["令人满意","心满意足"]},
+ scene:{ctx:"两种开心",
+   a:"老师对我的进步很满意。",
+   b:"小猫晒着太阳，一脸满足。",better:null,
+   why:"满意是“称心”，满足是“够了不再贪多”。"},
+ pitfall:"“我很满意这幅画”对；“我很满足这幅画”不通。",swap:false},
+"严格|严厉":{
+ rows:{scope:["按标准要求，不打折","态度凶，声色俱厉"],
+       coll:["严格要求自己","严厉地批评"]},
+ scene:{ctx:"两种要求",
+   a:"爸爸对我写作业的要求很严格。",
+   b:"教练严厉地指出了我的错误动作。",better:null,
+   why:"严格是“标准高”，严厉是“态度凶”；可以严格但不严厉。"},
+ pitfall:"“严格训练”对，“严厉训练”别扭。",swap:false},
+"镇定|沉着":{
+ rows:{coll:["镇定地报警","沉着应战"]},
+ scene:{ctx:"两个紧急时刻",
+   a:"他镇定地拨通了急救电话。",
+   b:"船长沉着地指挥大家逃生。",better:null,
+   why:"都指遇事不慌；“沉着”更强调冷静思考、稳得住。"},
+ pitfall:"两词常可互换，“沉着应战”是固定搭配。",swap:true},
+"需要|必须":{
+ rows:{pos:["动词：需要休息","副词：必须休息"]},
+ scene:{ctx:"两个规矩",
+   a:"植物的生长需要阳光和水。",
+   b:"过马路必须走斑马线。",better:null,
+   why:"“需要”表示“不可缺少”；“必须”表示“一定要这样做”。"},
+ pitfall:"“必须”后面接动作；“必需”是形容词：生活必需品。",swap:false},
+"热闹|喧闹":{
+ rows:{scope:["气氛活跃，人多","声音又吵又乱，偏贬"]},
+ scene:{ctx: "集市与课间",
+   a:"庙会上人山人海，真热闹。",
+   b:"下课铃一响，安静的校园顿时喧闹起来。",
+   better:"热闹",why:"夸气氛用“热闹”；“喧闹”重在吵，常用于打扰别人的场合。"},
+ pitfall:"“热闹”是褒的，“喧闹”往往带“吵得不安宁”的味道。",swap:false},
+"温暖|暖和":{
+ rows:{scope:["温度舒服；也指心里的温情","只指温度不低"]},
+ scene:{ctx:"冬天里的两份暖",
+   a:"同学的问候让我心里很温暖。",
+   b:"屋里生了炉子，暖和多了。",better:null,
+   why:"说心里的温情只能用“温暖”；说温度两者都行。"},
+ pitfall:"“心里暖和”不如“心里温暖”地道。",swap:true}
+};
+
+/* 主题标签固定表（避免标签爆炸，词条 tags 只能从这里取；
+   在策划案 18 个标签基础上补充“时间”，供开始/结束/继续等词使用） */
+const TAG_LIST=["情绪","心情","动作","神态","声音","天气","自然","景物","人物","性格","品质","学习","生活","程度","速度","数量","颜色","空间","时间"];
+
+/* =====================================================================
+ * 三、数据访问 API（纯逻辑，无 DOM，可在 Node 里单独测试）
+ * ===================================================================== */
+const POS_LIST=["名词","动词","形容词","副词","量词","成语"];
+const DB_API=(()=>{
+  const byIdMap={},byWordMap={};
+  WORD_DB.forEach(e=>{byIdMap[e.id]=e;byWordMap[e.word]=e;});
+  const relatedCache=new Map();
+
+  /* 该词引用到的全部相关词（自身 + 近义词 + 反义词），用于 R2/R8 校验 */
+  function relatedSet(e){
+    let s=relatedCache.get(e.id);
+    if(!s){
+      s=new Set([e.word]);
+      e.synonyms.forEach(x=>s.add(x.word));
+      e.antonyms.forEach(x=>s.add(x.word));
+      relatedCache.set(e.id,s);
+    }
+    return s;
+  }
+  /* R8 相关性判定：互为近/反义，或共享近义词，即视为相关 */
+  function isRelated(a,b){
+    if(!a||!b)return false;
+    if(a.id===b.id)return true;
+    if(relatedSet(a).has(b.word)||relatedSet(b).has(a.word))return true;
+    for(const x of a.synonyms){if(b.synonyms.some(y=>y.word===x.word))return true;}
+    return false;
+  }
+
+  /* ---------- 检索（P2：汉字 / 拼音全拼 / 拼音首字母） ---------- */
+  function cleanQuery(q){
+    return String(q==null?"":q)
+      .replace(/^[，。！？、；：,.!?~\s]+|[，。！？、；：,.!?~\s]+$/g,"").trim();
+  }
+  function search(raw){
+    const q=cleanQuery(raw);
+    if(!q)return[];
+    const low=q.toLowerCase();
+    const qPlain=stripTones(low).replace(/[\s']/g,"");
+    const out=[];
+    for(const e of WORD_DB){
+      let score=-1,field="",start=0,len=0;
+      if(e.word===q){score=100;field="word";start=0;len=q.length;}
+      else if(qPlain&&e.pinyin_plain===qPlain){score=95;field="plain";start=0;len=qPlain.length;}
+      else if(low.length>=2&&e.initials===low){score=90;field="initials";start=0;len=low.length;}
+      else if(e.word.startsWith(q)){score=80;field="word";start=0;len=q.length;}
+      else if(qPlain.length>=2&&e.pinyin_plain.startsWith(qPlain)){score=70;field="plain";start=0;len=qPlain.length;}
+      else if(qPlain.length>=2&&e.initials.startsWith(qPlain)){score=60;field="initials";start=0;len=qPlain.length;}
+      else if(qPlain.length>=2&&e.pinyin_plain.includes(qPlain)){score=55;field="plain";start=e.pinyin_plain.indexOf(qPlain);len=qPlain.length;}
+      else if(q.length>=2&&e.word.includes(q)){score=50;field="word";start=e.word.indexOf(q);len=q.length;}
+      else if(e.tags.indexOf(q)>=0){score=45;field="tag";}
+      if(score>0)out.push({e:e,score:score,field:field,start:start,len:len});
+    }
+    out.sort((a,b)=>b.score-a.score||a.e.word.length-b.e.word.length||a.e.id.localeCompare(b.e.id));
+    return out;
+  }
+  /* 把"无声调全拼"里的匹配区间映射回带调拼音，用于高亮 */
+  function plainRangeToPinyin(e,start,len){
+    const syls=e.pinyin.split(/\s+/);
+    let pos=0;const spans=[];
+    for(let i=0;i<syls.length;i++){
+      const p=stripTones(syls[i]);
+      const s0=pos,s1=pos+p.length;
+      const ov0=Math.max(s0,start),ov1=Math.min(s1,start+len);
+      if(ov1>ov0)spans.push({i:i,a:ov0-s0,b:ov1-s0});
+      pos=s1;
+    }
+    return spans;
+  }
+  function byId(id){return byIdMap[id]||null;}
+  function byWord(w){return byWordMap[w]||null;}
+  function letters(){
+    const set={};
+    WORD_DB.forEach(e=>{const c=(e.pinyin_plain[0]||"").toUpperCase();if(c)set[c]=1;});
+    return Object.keys(set).sort();
+  }
+  function byLetter(ch){return WORD_DB.filter(e=>(e.pinyin_plain[0]||"").toUpperCase()===ch);}
+  function byTag(t){return WORD_DB.filter(e=>e.tags.indexOf(t)>=0);}
+  /* 每日一词：按日期确定性取词 */
+  function daily(){
+    const d=new Date();
+    const key=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+    return WORD_DB[key%WORD_DB.length];
+  }
+  function recommend(n){
+    const d=new Date();
+    const seed=d.getFullYear()+d.getMonth()*31+d.getDate()*7;
+    const arr=[];
+    for(let i=0;i<WORD_DB.length;i++)arr.push(WORD_DB[(seed+i*97)%WORD_DB.length]);
+    return arr.filter((e,i,a)=>a.indexOf(e)===i).slice(0,n);
+  }
+  return {byId:byId,byWord:byWord,search:search,cleanQuery:cleanQuery,
+    isRelated:isRelated,relatedSet:relatedSet,plainRangeToPinyin:plainRangeToPinyin,
+    letters:letters,byLetter:byLetter,byTag:byTag,daily:daily,recommend:recommend};
+})();
+
+/* =====================================================================
+ * 四、本地存储（P5：统一前缀 syn.，容错读取，配额兜底）
+ * ===================================================================== */
+const STORE=(()=>{
+  const P="syn.",VERSION="1.0";
+  function safeParse(v,def){try{const o=JSON.parse(v);return o==null?def:o;}catch(e){return def;}}
+  function load(key,def){
+    try{const raw=localStorage.getItem(P+key);if(raw==null)return def;return safeParse(raw,def);}
+    catch(e){return def;}   // 隐私模式/被禁用时抛异常，兜底默认值
+  }
+  function pruneHistory(h){
+    const keep={};
+    const d=new Date();
+    for(let i=0;i<90;i++){          // 只保留最近 90 天
+      const t=new Date(d.getTime()-i*86400000);
+      keep[t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")]=1;
+    }
+    Object.keys(h).forEach(k=>{if(!keep[k])delete h[k];});
+  }
+  function save(key,val){
+    try{localStorage.setItem(P+key,JSON.stringify(val));return true;}
+    catch(e){                     // 配额满：清掉最占空间的历史再试一次
+      try{localStorage.removeItem(P+"history");localStorage.setItem(P+key,JSON.stringify(val));return true;}
+      catch(e2){return false;}
+    }
+  }
+  function remove(key){try{localStorage.removeItem(P+key);}catch(e){}}
+  function migrate(){/* v1.0 为首个版本，预留升级迁移入口 */}
+  function init(){
+    let v="0";
+    try{const raw=localStorage.getItem(P+"version");v=raw==null?"0":safeParse(raw,"0");}catch(e){}
+    if(v!==VERSION){migrate();save("version",VERSION);}
+    if(!Array.isArray(load("favorites",null)))save("favorites",[]);
+    const w=load("wrong",null);if(!w||typeof w!=="object"||Array.isArray(w))save("wrong",{});
+    const h=load("history",null);if(!h||typeof h!=="object"||Array.isArray(h))save("history",{});
+    const s=load("streak",null);if(!s||typeof s!=="object"||Array.isArray(s))save("streak",{current:0,longest:0,lastDate:""});
+    if(!Array.isArray(load("badges",null)))save("badges",[]);
+    const st=load("settings",null);if(!st||typeof st!=="object"||Array.isArray(st))save("settings",{sound:true,theme:"light",level:1});
+    const t=load("totals",null);if(!t||typeof t!=="object"||Array.isArray(t))save("totals",{});
+    if(!Array.isArray(load("recent",null)))save("recent",[]);
+    const m=load("mastered",null);if(!m||typeof m!=="object"||Array.isArray(m))save("mastered",{});
+  }
+  return {load:load,save:save,remove:remove,init:init,VERSION:VERSION};
+})();
+
+/* ---------- 学习数据读写（全部带默认值兜底） ---------- */
+function getSettings(){
+  const s=STORE.load("settings",{});
+  return Object.assign({sound:true,theme:"light",level:1,answerMode:"choice"},(s&&typeof s==="object")?s:{});
+}
+function saveSettings(s){STORE.save("settings",s);}
+function todayStr(d){const t=d||new Date();
+  return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");}
+function yesterStr(){return todayStr(new Date(Date.now()-86400000));}
+function getHistory(){const h=STORE.load("history",{});return (h&&typeof h==="object"&&!Array.isArray(h))?h:{};}
+function bumpHistory(field){
+  const h=getHistory(),d=todayStr();
+  const day=Object.assign({searched:0,answered:0,correct:0},h[d]||{});
+  day[field]=(day[field]||0)+1;h[d]=day;
+  STORE.save("history",h);
+}
+function getStreak(){
+  const s=STORE.load("streak",{current:0,longest:0,lastDate:""});
+  return (s&&typeof s==="object")?s:{current:0,longest:0,lastDate:""};
+}
+function updateStreak(){
+  const s=getStreak(),t=todayStr();
+  if(s.lastDate!==t){
+    s.current=(s.lastDate===yesterStr())?(s.current||0)+1:1;
+    s.longest=Math.max(s.longest||0,s.current);
+    s.lastDate=t;STORE.save("streak",s);
+  }
+  return s;
+}
+function getWrong(){const w=STORE.load("wrong",{});return (w&&typeof w==="object"&&!Array.isArray(w))?w:{};}
+/* 答错：按词聚合，记录错题类型 */
+function recordWrong(id,kind){
+  const w=getWrong();
+  const it=Object.assign({count:0,streak:0,wrongTypes:[],lastWrongAt:0},w[id]||{});
+  it.count++;it.streak=0;it.lastWrongAt=Date.now();
+  if(it.wrongTypes.indexOf(kind)<0)it.wrongTypes.push(kind);
+  w[id]=it;STORE.save("wrong",w);
+}
+/* 对错题本里的词答对：连续答对 2 次自动出库（真闭环），返回是否出库 */
+function recordRightOnWrong(id){
+  const w=getWrong(),it=w[id];
+  if(!it)return false;
+  it.streak=(it.streak||0)+1;
+  if(it.streak>=2){
+    delete w[id];
+    STORE.save("wrong",w);   // 出库必须写回，否则刷新后错题"复活"
+    const m=STORE.load("mastered",{});m[id]=Date.now();STORE.save("mastered",m);
+    return true;
+  }
+  STORE.save("wrong",w);return false;
+}
+function getMastered(){const m=STORE.load("mastered",{});return (m&&typeof m==="object"&&!Array.isArray(m))?m:{};}
+function getFavorites(){const f=STORE.load("favorites",[]);return Array.isArray(f)?f:[];}
+function toggleFav(id){
+  const f=getFavorites(),i=f.indexOf(id);
+  if(i>=0)f.splice(i,1);else f.unshift(id);
+  STORE.save("favorites",f);return i<0;
+}
+function getRecent(){const r=STORE.load("recent",[]);return Array.isArray(r)?r:[];}
+function pushRecent(id){
+  let r=getRecent().filter(x=>x!==id);r.unshift(id);r=r.slice(0,8);
+  STORE.save("recent",r);
+}
+function getTotals(){
+  const t=STORE.load("totals",{});
+  return Object.assign({searched:0,answered:0,correct:0,levels:0,stars3:0,maxCombo:0,mastered:0},
+    (t&&typeof t==="object"&&!Array.isArray(t))?t:{});
+}
+function bumpTotals(patch){
+  const t=getTotals();
+  for(const k in patch)t[k]=(t[k]||0)+(patch[k]||0);
+  STORE.save("totals",t);return t;
+}
+function setTotalsMax(field,val){
+  const t=getTotals();
+  if(val>(t[field]||0)){t[field]=val;STORE.save("totals",t);}
+}
+
+/* ---------- 成就徽章（配置数组，便于扩充） ---------- */
+const BADGES=[
+ {id:"first3star",icon:"🌟",name:"第一次三星",desc:"第一次拿到三星通关",check:function(s){return s.stars3>=1;}},
+ {id:"combo10",icon:"🔥",name:"连对十题",desc:"累计连对达到 10 题",check:function(s){return s.maxCombo>=10;}},
+ {id:"search100",icon:"🔍",name:"查词百次",desc:"累计查词 100 次",check:function(s){return s.searches>=100;}},
+ {id:"fav20",icon:"⭐",name:"收藏达人",desc:"收藏 20 个词语",check:function(s){return s.favs>=20;}},
+ {id:"master10",icon:"🏅",name:"错题克星",desc:"掌握 10 个曾经出错的词",check:function(s){return s.mastered>=10;}},
+ {id:"streak7",icon:"📅",name:"七日坚持",desc:"连续打卡 7 天",check:function(s){return s.streakLongest>=7;}},
+ {id:"level10",icon:"🚀",name:"闯关小将",desc:"完成 10 个关卡",check:function(s){return s.levels>=10;}}
+];
+function getBadges(){const b=STORE.load("badges",[]);return Array.isArray(b)?b:[];}
+function aggregateStats(){
+  const t=getTotals();
+  return {searches:t.searched||0,answered:t.answered||0,correct:t.correct||0,
+    levels:t.levels||0,stars3:t.stars3||0,maxCombo:t.maxCombo||0,mastered:t.mastered||0,
+    favs:getFavorites().length,streakLongest:getStreak().longest||0};
+}
+function checkBadges(){
+  const s=aggregateStats(),have=getBadges(),newly=[];
+  for(const b of BADGES){
+    if(have.indexOf(b.id)<0){
+      let ok=false;try{ok=b.check(s);}catch(e){}
+      if(ok){have.push(b.id);newly.push(b);}
+    }
+  }
+  if(newly.length)STORE.save("badges",have);
+  return newly;
+}
+
+/* ---------- 统计与报告（P6：实时计算，不新增冗余存储） ---------- */
+function weekStats(){
+  const h=getHistory();let searched=0,answered=0,correct=0;
+  for(let i=0;i<7;i++){
+    const day=h[todayStr(new Date(Date.now()-i*86400000))];
+    if(day){searched+=day.searched||0;answered+=day.answered||0;correct+=day.correct||0;}
+  }
+  return {searched:searched,answered:answered,correct:correct};
+}
+/* 薄弱词：错误次数 ≥2 且尚未出库 */
+function weakWords(minCount){
+  const w=getWrong(),arr=[];
+  for(const id in w){
+    if(w[id].count>=(minCount||2)){
+      const e=DB_API.byId(id);
+      if(e)arr.push({entry:e,count:w[id].count,lastWrongAt:w[id].lastWrongAt,types:w[id].wrongTypes});
+    }
+  }
+  arr.sort((a,b)=>b.count-a.count||b.lastWrongAt-a.lastWrongAt);
+  return arr;
+}
+function relTime(ts){
+  if(!ts)return"";
+  const days=Math.floor((Date.now()-ts)/86400000);
+  if(days<=0)return"今天";
+  if(days===1)return"昨天";
+  return days+" 天前";
+}
+const KIND_NAME={syn:"近义",ant:"反义",odd:"异类",swap:"替换",fillSyn:"近义填写",fillAnt:"反义填写",learn:"自动学习"};
+function parentReport(){
+  const w=weekStats();
+  if(!w.answered&&!w.searched)return"这周还没有学习记录。找个空闲，和孩子一起查几个词、玩一关闯关，就很棒。建议周末一起读一小段课文，找找里面的近义词。";
+  let t="这周查了 "+w.searched+" 个词，做了 "+w.answered+" 道题";
+  if(w.answered)t+="，正确率 "+Math.round(w.correct/w.answered*100)+"%";
+  t+="。";
+  const weak=weakWords(2).slice(0,2).map(x=>x.entry.word);
+  if(weak.length)t+="还需要多练的是「"+weak.join("」「")+"」这一组。";
+  t+="建议周末陪孩子读一段课文，一起找找里面的近义词。";
+  return t;
+}
+
+/* =====================================================================
+ * 五、出题引擎（P4：题目 = 词库 × 题型模板实时生成，R1-R8 硬性规则）
+ *
+ * 规则落地说明：
+ * R1 正确答案必须来自该词的 synonyms（近义题）或 antonyms（反义题）。
+ * R2 原文"干扰项不能是该词任何正确的近义词或反义词"按其本意（防止双正确
+ *    答案）落地为：除正确答案外，任何选项不得属于该词的同类答案集合
+ *    （近义题=其余近义词；反义题=其余反义词）。反义题用近义词作干扰项、
+ *    近义题用反义词作干扰项，是 R3/R4 明确要求的测混淆点，予以保留。
+ * R3 近义题干扰项优先取该词的 antonyms，其次同词性无关词。
+ * R4 反义题干扰项优先取该词的 synonyms（最高频错因）。
+ * R5 四个选项同词性。
+ * R6 四个选项字数差 ≤2。
+ * R7 同一关 5 题内不重复考同一个词。
+ * R8 生成后全量校验：选项两两之间不能互为近义/反义（isRelated）。
+ *    校验不过就重新生成，10 次失败换题换词，绝不放行不合格题目。
+ * ===================================================================== */
+const QUIZ_ENGINE=(()=>{
+  function shuffle(arr){           // Fisher-Yates 洗牌
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}
+    return a;
+  }
+  function pickOne(arr){return arr[Math.floor(Math.random()*arr.length)];}
+  function stemPool(level){        // F17：按年级筛选词库
+    if(level===1)return WORD_DB.filter(e=>e.grade<=4);
+    if(level===2)return WORD_DB.filter(e=>e.grade>=4&&e.grade<=6);
+    return WORD_DB.filter(e=>e.grade>=5);
+  }
+  /* R6：字数差 ≤2 */
+  function lenOk(words){
+    let mn=99,mx=0;
+    words.forEach(w=>{const n=w.length;mn=Math.min(mn,n);mx=Math.max(mx,n);});
+    return mx-mn<=2;
+  }
+  /* 干扰项挑选：优先池（近义题=反义词；反义题=近义词）+ 同词性无关词 */
+  function buildDistractors(stem,kind,answerWord,answerPos){
+    const exclude=new Set([stem.word,answerWord]);
+    const answerSet=(kind==="syn"?stem.synonyms:stem.antonyms).map(x=>x.word);
+    answerSet.forEach(w=>{if(w!==answerWord)exclude.add(w);});   // R2：杜绝双正确答案
+    const prefer=(kind==="syn"?stem.antonyms:stem.synonyms).map(x=>x.word)
+      .filter(w=>!exclude.has(w)&&Math.abs(w.length-answerWord.length)<=2)
+      .filter(w=>{const en=DB_API.byWord(w);return !en||en.pos===answerPos;});  // R5
+    const general=WORD_DB
+      .filter(e=>e.pos===answerPos&&e.word!==stem.word&&!exclude.has(e.word)
+        &&Math.abs(e.word.length-answerWord.length)<=2
+        &&!DB_API.relatedSet(stem).has(e.word))
+      .map(e=>e.word);
+    const picked=[],pool=shuffle(prefer).concat(shuffle(general));
+    for(const w of pool){
+      if(picked.length>=3)break;
+      if(picked.indexOf(w)>=0)continue;
+      let clash=false;
+      for(const p of picked){const a=DB_API.byWord(w),b=DB_API.byWord(p);
+        if(a&&b&&DB_API.isRelated(a,b)){clash=true;break;}}
+      if(!clash)picked.push(w);
+    }
+    return picked.length===3?picked:null;
+  }
+  /* 生成后校验：R2/R5/R6/R8，返回失败规则名或 null */
+  function validateOptions(stem,kind,answerWord,options){
+    const answerSet=(kind==="syn"?stem.synonyms:stem.antonyms).map(x=>x.word);
+    for(const w of options){                       // R2
+      if(w!==answerWord&&answerSet.indexOf(w)>=0)return"R2";
+    }
+    const posSet={};let unknown=false;             // R5
+    for(const w of options){
+      const en=DB_API.byWord(w);
+      if(en)posSet[en.pos]=1;else unknown=true;
+    }
+    if(!unknown&&Object.keys(posSet).length>1)return"R5";
+    if(!lenOk(options))return"R6";                 // R6
+    for(let i=0;i<options.length;i++)              // R8
+      for(let j=i+1;j<options.length;j++){
+        const a=DB_API.byWord(options[i]),b=DB_API.byWord(options[j]);
+        if(a&&b&&DB_API.isRelated(a,b))return"R8";
+      }
+    return null;
+  }
+  /* 近义题 */
+  function genSyn(stem){
+    if(!stem.synonyms.length)return null;
+    const withEntry=stem.synonyms.filter(s=>DB_API.byWord(s.word));
+    const chosen=pickOne(withEntry.length?withEntry:stem.synonyms);
+    const ansEntry=DB_API.byWord(chosen.word);
+    const pos=ansEntry?ansEntry.pos:stem.pos;
+    for(let t=0;t<10;t++){
+      const ds=buildDistractors(stem,"syn",chosen.word,pos);
+      if(!ds)continue;
+      const options=shuffle([chosen.word].concat(ds));
+      if(validateOptions(stem,"syn",chosen.word,options))continue;
+      return {kind:"syn",wordId:stem.id,word:stem.word,pinyin:stem.pinyin,
+        prompt:"下面哪个词是「"+stem.word+"」的近义词？",
+        options:options,answerIndex:options.indexOf(chosen.word),
+        explain:"「"+stem.word+"」和「"+chosen.word+"」是近义词。"+chosen.diff};
+    }
+    return null;
+  }
+  /* 反义题 */
+  function genAnt(stem){
+    if(!stem.antonyms.length)return null;
+    const withEntry=stem.antonyms.filter(s=>DB_API.byWord(s.word));
+    const chosen=pickOne(withEntry.length?withEntry:stem.antonyms);
+    const ansEntry=DB_API.byWord(chosen.word);
+    const pos=ansEntry?ansEntry.pos:stem.pos;
+    for(let t=0;t<10;t++){
+      const ds=buildDistractors(stem,"ant",chosen.word,pos);
+      if(!ds)continue;
+      const options=shuffle([chosen.word].concat(ds));
+      if(validateOptions(stem,"ant",chosen.word,options))continue;
+      return {kind:"ant",wordId:stem.id,word:stem.word,pinyin:stem.pinyin,
+        prompt:"下面哪个词和「"+stem.word+"」意思相反？",
+        options:options,answerIndex:options.indexOf(chosen.word),
+        explain:"「"+stem.word+"」和「"+chosen.word+"」意思相反。"+chosen.diff};
+    }
+    return null;
+  }
+  /* 找异类题：3 个互为近义词 + 1 个无关词（无关词不能与组内任何词近义/反义） */
+  function genOdd(stem){
+    const synEntries=stem.synonyms.map(s=>DB_API.byWord(s.word)).filter(Boolean);
+    const uniq=[],seen={};
+    for(const s of synEntries){if(!seen[s.word]&&s.pos===stem.pos){seen[s.word]=1;uniq.push(s);}}
+    if(uniq.length<2)return null;
+    for(let t=0;t<10;t++){
+      const g2=shuffle(uniq).slice(0,2);
+      const group=[stem,g2[0],g2[1]];
+      let bad=false;
+      for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){
+        if(group[i].antonyms.some(a=>a.word===group[j].word))bad=true;
+      }
+      if(bad)continue;
+      const cands=WORD_DB.filter(e=>
+        e.pos===stem.pos&&
+        group.every(g=>g.id!==e.id)&&
+        group.every(g=>!DB_API.isRelated(g,e))&&
+        Math.abs(e.word.length-stem.word.length)<=2);
+      if(!cands.length)continue;
+      const odd=pickOne(cands);
+      const options=shuffle(group.map(g=>g.word).concat([odd.word]));
+      if(!lenOk(options))continue;
+      return {kind:"odd",wordId:stem.id,word:stem.word,pinyin:stem.pinyin,
+        prompt:"下面哪个词和其他三个不是一类？（从意思上看）",
+        options:options,answerIndex:options.indexOf(odd.word),
+        explain:"「"+group.map(g=>g.word).join("」「")+"」是一组近义词，意思相近；而「"+odd.word+"」的意思是“"+odd.definition+"”，和它们不是一类。"};
+    }
+    return null;
+  }
+  /* 句中替换判断题（F14）：依据辨析库的 swap 标注出题；R7：跳过本关已用的词 */
+  function genSwap(poolIds,usedIds){
+    const keys=Object.keys(CONTRAST_DB).filter(function(k){return CONTRAST_DB[k].swap!==undefined;});
+    const usable=keys.filter(function(k){
+      const ids=k.split("|").map(function(w){const e=DB_API.byWord(w);return e?e.id:null;});
+      if(usedIds&&ids.some(function(id){return id&&usedIds[id];}))return false;
+      if(!poolIds)return true;
+      return ids.some(function(id){return id&&poolIds.indexOf(id)>=0;});
+    });
+    const pool=usable.length?usable:keys.filter(function(k){
+      const ids=k.split("|").map(function(w){const e=DB_API.byWord(w);return e?e.id:null;});
+      return !(usedIds&&ids.some(function(id){return id&&usedIds[id];}));
+    });
+    if(!pool.length)return null;
+    for(let t=0;t<10;t++){
+      const key=pickOne(pool),pair=CONTRAST_DB[key];
+      let names=key.split("|");
+      if(Math.random()<0.5)names=[names[1],names[0]];   // 随机方向
+      const A=DB_API.byWord(names[0]),B=DB_API.byWord(names[1]);
+      if(!A||!B)continue;
+      const ex=A.examples.filter(s=>s.indexOf(A.word)>=0)[0];
+      if(!ex)continue;
+      return {kind:"swap",wordId:A.id,word:A.word,pinyin:A.pinyin,
+        sentence:ex,fromWord:A.word,toWord:B.word,
+        prompt:"把句中的「"+A.word+"」换成「"+B.word+"」，句子的意思变了吗？",
+        options:["意思基本不变","意思变了"],
+        answerIndex:pair.swap?0:1,
+        explain:pair.pitfall||(pair.scene&&pair.scene.why)||("「"+A.word+"」和「"+B.word+"」在这句话里不能随便互换。")};
+    }
+    return null;
+  }
+  /* 填写题：给出词语，用户手输近/反义词（判分见 checkFillAnswer） */
+  function genFill(kind,stem){
+    const list=kind==="fillSyn"?stem.synonyms:stem.antonyms;
+    if(!list.length)return null;
+    return {kind:kind,wordId:stem.id,word:stem.word,pinyin:stem.pinyin,
+      prompt:kind==="fillSyn"
+        ?("请写出一个「"+stem.word+"」的近义词")
+        :("请写出一个「"+stem.word+"」的反义词"),
+      answers:list.map(x=>x.word),
+      explain:"「"+stem.word+"」的"+(kind==="fillSyn"?"近义词":"反义词")+"："
+        +list.map(x=>x.word).join("、")+"。"+list[0].diff};
+  }
+  /* 填写判分：词库正向匹配；也接受"反向互认"（填的词的近/反义表里有题干词）。
+     state: empty 没填 / self 填了题干本身 / ok 答对 / no 没对上 */
+  function checkFillAnswer(stem,kind,input){
+    const q=String(input==null?"":input).replace(/\s+/g,"");
+    if(!q)return {state:"empty"};
+    if(q===stem.word)return {state:"self"};
+    const list=(kind==="fillSyn"?stem.synonyms:stem.antonyms);
+    for(let i=0;i<list.length;i++){
+      if(list[i].word===q)return {state:"ok",matched:q,reverse:false};
+    }
+    const en=DB_API.byWord(q);
+    if(en){
+      const refs=kind==="fillSyn"?en.synonyms:en.antonyms;
+      for(let i=0;i<refs.length;i++){
+        if(refs[i].word===stem.word)return {state:"ok",matched:q,reverse:true};
+      }
+    }
+    return {state:"no"};
+  }
+  /* 自动学习卡：一词展示释义 + 全部近/反义词（不判分、不计入统计） */
+  function genLearn(stem){
+    if(!stem.synonyms.length&&!stem.antonyms.length)return null;
+    return {kind:"learn",wordId:stem.id,word:stem.word,pinyin:stem.pinyin,
+      definition:stem.definition,
+      synWords:stem.synonyms.map(x=>x.word),
+      antWords:stem.antonyms.map(x=>x.word),
+      explain:stem.confuse||""};
+  }
+  function gen(kind,entry,poolIds,usedIds){
+    if(kind==="syn")return genSyn(entry);
+    if(kind==="ant")return genAnt(entry);
+    if(kind==="odd")return genOdd(entry);
+    if(kind==="swap")return genSwap(poolIds||null,usedIds||null);
+    if(kind==="fillSyn"||kind==="fillAnt")return genFill(kind,entry);
+    if(kind==="learn")return genLearn(entry);
+    return null;
+  }
+  function eligible(kind,e){
+    if(kind==="syn"||kind==="fillSyn")return e.synonyms.length>0;
+    if(kind==="ant"||kind==="fillAnt")return e.antonyms.length>0;
+    if(kind==="odd")return e.synonyms.filter(s=>DB_API.byWord(s.word)&&DB_API.byWord(s.word).pos===e.pos).length>=2;
+    if(kind==="learn")return e.synonyms.length>0||e.antonyms.length>0;
+    return true;
+  }
+  /* 生成一关（5 题 / 错题特训 / 单词特训），R7：关内词不重复 */
+  function generateLevel(opts){
+    opts=opts||{};
+    const level=opts.level||1;
+    let pool;
+    if(opts.mode==="wrong"){
+      const w=getWrong();
+      pool=Object.keys(w).map(DB_API.byId).filter(Boolean).sort((a,b)=>w[b.id].count-w[a.id].count);
+    }else if(opts.mode==="focus"||opts.mode==="focusFill"){
+      pool=[DB_API.byId(opts.focusId)].filter(Boolean);
+    }else{
+      pool=stemPool(level);
+    }
+    const want=opts.mode==="focus"||opts.mode==="focusFill"?3:5;
+    let kinds;
+    if(opts.mode==="fill")kinds=shuffle(["fillSyn","fillAnt","fillSyn","fillAnt","fillSyn"]);
+    else if(opts.mode==="auto")kinds=["learn","learn","learn","learn","learn"];
+    else if(opts.mode==="focusFill")kinds=["fillSyn","fillAnt","fillSyn"];
+    else kinds=shuffle(["syn","syn","ant","ant","odd","swap"]);
+    const questions=[],used={};
+    function tryKind(k){
+      if(questions.length>=want)return;
+      if(k==="swap"){
+        const q=gen("swap",null,opts.mode?null:pool.map(x=>x.id),used);
+        if(q){used[q.wordId]=1;questions.push(q);}
+        return;
+      }
+      const order=shuffle(pool.filter(e=>!used[e.id]&&eligible(k,e)));
+      for(const e of order){
+        const q=gen(k,e,opts.mode?null:pool.map(x=>x.id),used);
+        if(q){used[e.id]=1;questions.push(q);return;}
+      }
+    }
+    kinds.forEach(tryKind);
+    ["syn","ant","odd"].forEach(tryKind);   // 题型受限时兜底补足
+    return questions;
+  }
+  /* 开发者自检（P4）：全词库 × 全题型生成并逐题校验，用 console.warn 打印不合格题
+     注意：找异类题不用通用 R8（组内 3 词互为近义是题型定义），
+     改查"无关词不能与组内任何词构成近义/反义/共享近义关系"。 */
+  function selfTestQuiz(n){
+    let genCount=0,fail=0;const log=[];
+    WORD_DB.forEach(function(e){
+      ["syn","ant","odd","fillSyn","fillAnt","learn"].forEach(function(kind){
+        const q=gen(kind,e,null);
+        if(!q)return;
+        genCount++;
+        let err;
+        if(kind==="odd"){
+          const odd=q.options[q.answerIndex];
+          err=null;
+          q.options.forEach(function(w){
+            if(w===odd)return;
+            const a=DB_API.byWord(w),b=DB_API.byWord(odd);
+            if(a&&b&&DB_API.isRelated(a,b))err="R8-odd(无关词与组内相关)";
+          });
+        }else if(kind==="fillSyn"||kind==="fillAnt"){
+          if(!q.answers.length||q.answers.indexOf(q.word)>=0)
+            err="fill(参考答案为空或含题干)";
+          else if(checkFillAnswer(e,kind,q.answers[0]).state!=="ok")
+            err="fill(参考答案无法判分)";
+        }else if(kind==="learn"){
+          if((!q.synWords.length&&!q.antWords.length)
+            ||q.synWords.indexOf(q.word)>=0||q.antWords.indexOf(q.word)>=0)
+            err="learn(卡片内容为空或含题干)";
+        }else{
+          err=validateOptions(e,kind,q.options[q.answerIndex],q.options);
+        }
+        if(err){fail++;log.push(e.word+" ["+kind+"] "+err+"： "
+          +(q.options?q.options.join(" / "):(q.answers||q.synWords||[]).join("、")));}
+      });
+    });
+    let full=0,dup=0;
+    for(let i=0;i<(n||60);i++){
+      const qs=generateLevel({level:(i%3)+1,mode:"normal"});
+      if(qs.length===5)full++;
+      if(new Set(qs.map(q=>q.wordId)).size!==qs.length)dup++;
+    }
+    log.forEach(function(l){console.warn("[selfTest] 不合格题目:",l);});
+    return {total:genCount,failed:fail,failures:log,levelsFull:full,levelsDup:dup};
+  }
+  return {shuffle:shuffle,stemPool:stemPool,gen:gen,eligible:eligible,
+    validateOptions:validateOptions,checkFillAnswer:checkFillAnswer,
+    generateLevel:generateLevel,selfTestQuiz:selfTestQuiz};
+})();
+
+/* =====================================================================
+ * 六、界面与交互（P2/P3：渲染一律用 createElement/textContent，防 XSS）
+ * ===================================================================== */
+const VIEWS=["search","contrast","quiz","browse","me"];
+function $(sel,root){return (root||document).querySelector(sel);}
+function el(tag,cls,text){
+  const n=document.createElement(tag);
+  if(cls)n.className=cls;
+  if(text!=null)n.textContent=text;
+  return n;
+}
+function colorPill(color){
+  const map={"褒义":"biao","中性":"zhong","贬义":"bian"};
+  return el("span","tagpill "+(map[color]||"zhong"),color);
+}
+function gradeLabel(g){
+  if(g<=2)return"1-2 年级";
+  if(g<=4)return"3-4 年级";
+  if(g<=6)return"5-6 年级";
+  return"7-9 年级";
+}
+function shortDiff(t){       // 推导行单元格截短（每格 ≤18 字）
+  const s=String(t||"").split(/[，。；]/)[0];
+  return s.length>18?s.slice(0,17)+"…":s;
+}
+
+/* ---------- Toast / Modal ---------- */
+let toastTimer=null;
+function toast(msg,ms){
+  const t=$("#toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove("show");},ms||2400);
+}
+function openModal(node,onClose){
+  const root=$("#modal-root");root.textContent="";
+  const ov=el("div","modal-overlay");
+  const box=el("div","modal");
+  box.appendChild(node);ov.appendChild(box);root.appendChild(ov);
+  function close(){root.textContent="";if(onClose)onClose();}
+  ov.addEventListener("click",function(e){if(e.target===ov)close();});
+  return close;
+}
+function confirmModal(title,body,okText,onOk){
+  const c=el("div");
+  c.appendChild(el("h3",null,title));
+  c.appendChild(el("p","muted",body));
+  const act=el("div","modal-actions");
+  const cancel=el("button","btn btn-plain","取消");
+  const ok=el("button","btn btn-primary",okText||"确定");
+  act.append(cancel,ok);c.appendChild(act);
+  const close=openModal(c);
+  cancel.addEventListener("click",close);
+  ok.addEventListener("click",function(){close();onOk();});
+}
+
+/* ---------- 音效（WebAudio 合成，无音频文件、无网络） ---------- */
+let actx=null;
+function tone(freq,dur,type,gain){
+  try{
+    if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended")actx.resume().catch(function(){});
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type||"sine";o.frequency.value=freq;
+    o.connect(g);g.connect(actx.destination);
+    const t=actx.currentTime;
+    g.gain.setValueAtTime(gain||0.04,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t);o.stop(t+dur+0.02);
+  }catch(e){}
+}
+function playCorrect(){if(getSettings().sound){tone(660,0.09);setTimeout(function(){tone(880,0.14);},90);}}
+function playWrong(){if(getSettings().sound)tone(196,0.2,"square",0.03);}
+function playMaster(){if(getSettings().sound)[523,659,784].forEach(function(f,i){setTimeout(function(){tone(f,0.12);},i*110);});}
+
+/* ---------- 应用状态 ---------- */
+const S={
+  view:"search", entry:null, navStack:[], query:"", results:[], selIndex:0,
+  contrast:{a:null,b:null},
+  quiz:null,
+  browse:{pos:"",grade:"",tag:""}
+};
+function goView(v){
+  if(location.hash==="#/"+v)route();else location.hash="#/"+v;
+}
+
+/* ---------- 哈希路由（浏览器后退可用） ---------- */
+function route(){
+  let h=location.hash.replace(/^#\/?/,"");
+  if(VIEWS.indexOf(h)<0)h="search";
+  S.view=h;
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("active",t.dataset.v===h);});
+  document.querySelectorAll(".view").forEach(function(s){s.classList.remove("active");});
+  $("#view-"+h).classList.add("active");
+  VIEW_RENDER[h]();
+  window.scrollTo(0,0);
+}
+
+/* =====================================================================
+ * 查词视图（P2 精修：防抖 150ms、三种输入、高亮、面包屑、空状态）
+ * ===================================================================== */
+function renderSearch(){
+  renderResults();
+}
+function renderResults(){
+  const box=$("#search-results"),detail=$("#search-detail");
+  box.textContent="";
+  const q=DB_API.cleanQuery($("#search-input").value);
+  S.query=q;
+  if(!q){renderSearchHome(box);return;}
+  const res=DB_API.search(q);
+  S.results=res;S.selIndex=0;
+  if(!res.length){
+    const empty=el("div","empty");
+    empty.appendChild(el("div","big","🤔"));
+    empty.appendChild(el("div",null,"没找到「"+q+"」。"));
+    empty.appendChild(el("div","muted","试试换个说法，或者按拼音找找看。"));
+    const chips=el("div","reco-chips");
+    DB_API.recommend(3).forEach(function(e){
+      const c=el("button","chip",e.word);c.type="button";
+      c.addEventListener("click",function(){openWord(e.word);});
+      chips.appendChild(c);
+    });
+    empty.appendChild(chips);
+    box.appendChild(empty);
+    detail.textContent="";
+    return;
+  }
+  res.slice(0,20).forEach(function(r,i){box.appendChild(resultItem(r,i));});
+  if(res.length>20)box.appendChild(el("div","more-hint","还有 "+(res.length-20)+" 条结果，请补充关键词"));
+  showDetail(res[0].e,false);       // 默认选中第一条（不计数）
+}
+function renderSearchHome(box){
+  const detail=$("#search-detail");
+  box.appendChild(el("div","sec-title","📅 今日一词"));
+  const daily=DB_API.daily();
+  const dbox=el("div","daily-box");
+  const w=el("div","d-word",daily.word);
+  w.style.cursor="pointer";
+  w.addEventListener("click",function(){openWord(daily.word);});
+  dbox.appendChild(w);
+  dbox.appendChild(el("div","d-py",daily.pinyin));
+  dbox.appendChild(el("div","muted",daily.definition));
+  const more=el("button","btn btn-ghost btn-small","查看详情");
+  more.style.marginTop="8px";more.type="button";
+  more.addEventListener("click",function(){openWord(daily.word);});
+  dbox.appendChild(more);
+  box.appendChild(dbox);
+  box.appendChild(el("div","sec-title","🕘 最近查过"));
+  const rec=getRecent().map(DB_API.byId).filter(Boolean);
+  if(!rec.length){
+    box.appendChild(el("div","muted","还没搜过词呢，试试输入「高兴」，或者输入拼音 gaoxing。"));
+  }else{
+    const chips=el("div","reco-chips");
+    rec.forEach(function(e){
+      const c=el("button","chip",e.word);c.type="button";
+      c.addEventListener("click",function(){openWord(e.word);});
+      chips.appendChild(c);
+    });
+    box.appendChild(chips);
+  }
+  detail.textContent="";
+  detail.appendChild(el("div","empty",null));
+  const d=detail.firstChild;
+  d.appendChild(el("div","big","🔎"));
+  d.appendChild(el("div",null,"左边选一个词，这里会显示它的用法提示。"));
+}
+function markIn(parent,text,start,len){
+  if(start==null||start<0||len<=0||start+len>text.length){parent.textContent=text;return;}
+  parent.appendChild(document.createTextNode(text.slice(0,start)));
+  const m=el("mark",null,text.slice(start,start+len));
+  parent.appendChild(m);
+  parent.appendChild(document.createTextNode(text.slice(start+len)));
+}
+function highlightPinyin(parent,e,start,len){
+  const spans=DB_API.plainRangeToPinyin(e,start,len);
+  if(!spans.length){parent.textContent=e.pinyin;return;}
+  const syls=e.pinyin.split(/\s+/);
+  syls.forEach(function(syl,i){
+    if(i>0)parent.appendChild(document.createTextNode(" "));
+    const sp=spans.filter(function(x){return x.i===i;})[0];
+    if(sp&&sp.a===0&&sp.b===syl.length)parent.appendChild(el("mark",null,syl));
+    else if(sp){markIn(parent,syl,sp.a,sp.b-sp.a);}
+    else parent.appendChild(document.createTextNode(syl));
+  });
+}
+function resultItem(r,i){
+  const b=el("button","result-item"+(i===S.selIndex?" sel":""));
+  b.type="button";
+  const l1=el("div","result-line1");
+  const w=el("span","result-word");
+  if(r.field==="word")markIn(w,r.e.word,r.start,r.len);else w.textContent=r.e.word;
+  const p=el("span","result-py");
+  if(r.field==="plain")highlightPinyin(p,r.e,r.start,r.len);
+  else if(r.field==="initials"){p.textContent=r.e.pinyin;}
+  else p.textContent=r.e.pinyin;
+  l1.append(w,p);
+  b.appendChild(l1);
+  const syns=r.e.synonyms.slice(0,3).map(function(s){return s.word;}).join(" / ");
+  b.appendChild(el("span","result-syn",syns?("近义词："+syns):""));
+  b.addEventListener("click",function(){selectResult(i,true);});
+  return b;
+}
+function selectResult(i,countIt){
+  S.selIndex=i;
+  const items=$("#search-results").querySelectorAll(".result-item");
+  items.forEach(function(n,j){n.classList.toggle("sel",j===i);});
+  if(items[i])items[i].scrollIntoView({block:"nearest"});
+  const r=S.results[i];
+  if(r){
+    if(countIt)openWord(r.e.word);
+    else showDetail(r.e,false);
+  }
+}
+/* 打开词条：维护 ≤5 层返回栈，计数并打卡徽章 */
+function openWord(word,fromEntry){
+  const e=DB_API.byWord(word);
+  if(!e){renderNotFound(word,fromEntry);return;}
+  if(S.entry&&S.entry.id!==e.id){
+    S.navStack.push(S.entry);
+    if(S.navStack.length>5)S.navStack.shift();
+  }
+  S.entry=e;
+  bumpHistory("searched");bumpTotals({searched:1});pushRecent(e.id);
+  checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
+  showDetail(e,true);
+}
+function renderNotFound(word,fromEntry){
+  const detail=$("#search-detail");detail.textContent="";
+  const d=el("div","empty");
+  d.appendChild(el("div","big","🧐"));
+  d.appendChild(el("div",null,"词库里还没有「"+word+"」。"));
+  if(fromEntry&&fromEntry.synonyms.length){
+    d.appendChild(el("div","muted","先看看和它相近的词："));
+    const chips=el("div","reco-chips");
+    fromEntry.synonyms.forEach(function(s){
+      const c=el("button","chip",s.word);c.type="button";
+      c.addEventListener("click",function(){openWord(s.word,fromEntry);});
+      chips.appendChild(c);
+    });
+    d.appendChild(chips);
+  }
+  detail.appendChild(d);
+}
+function pillItem(word,diff,type,fromEntry){
+  const b=el("button","pillitem"+(type==="ant"?" ant":""));
+  b.type="button";
+  b.appendChild(el("span","pill-word",word));
+  if(diff)b.appendChild(el("span","pill-diff",diff));
+  b.addEventListener("click",function(){openWord(word,fromEntry);});
+  return b;
+}
+function showDetail(entry,refreshList){
+  if(refreshList){/* 由 openWord 调用时同步列表选中态 */}
+  const detail=$("#search-detail");detail.textContent="";
+  detail.appendChild(buildDetail(entry));
+}
+function buildDetail(entry){
+  const c=el("div","detail");
+  if(S.navStack.length){
+    const back=el("button","backlink");
+    back.type="button";
+    const prev=S.navStack[S.navStack.length-1];
+    back.appendChild(el("span",null,"← 返回 "+prev.word));
+    back.addEventListener("click",function(){
+      const p=S.navStack.pop();
+      if(p){S.entry=p;showDetail(p,false);}
+    });
+    c.appendChild(back);
+  }
+  const top=el("div","d-top");
+  const wwrap=el("div");
+  wwrap.appendChild(el("div","d-word",entry.word));
+  wwrap.appendChild(el("div","d-py",entry.pinyin));
+  top.appendChild(wwrap);
+  const isFav=getFavorites().indexOf(entry.id)>=0;
+  const star=el("button","star-btn"+(isFav?" on":""));
+  star.type="button";
+  const ico=el("span","star-ico",isFav?"★":"☆");
+  const lbl=el("span",null,isFav?"已收藏":"收藏");
+  star.append(ico,lbl);
+  star.addEventListener("click",function(){
+    const on=toggleFav(entry.id);
+    star.classList.toggle("on",on);
+    ico.textContent=on?"★":"☆";lbl.textContent=on?"已收藏":"收藏";
+    toast(on?("已把「"+entry.word+"」收进生词本"):("已从生词本移出「"+entry.word+"」"));
+    checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
+    if(S.view==="me")renderMe();
+  });
+  top.appendChild(star);
+  c.appendChild(top);
+  const meta=el("div","d-meta");
+  meta.appendChild(el("span","meta-chip",entry.pos));
+  meta.appendChild(el("span","meta-chip",gradeLabel(entry.grade)));
+  meta.appendChild(colorPill(entry.color));
+  c.appendChild(meta);
+  c.appendChild(el("div","d-def",entry.definition));
+  if(entry.synonyms.length){
+    c.appendChild(el("div","sec-title","近义词"));
+    const row=el("div","pillrow");
+    entry.synonyms.forEach(function(s){row.appendChild(pillItem(s.word,s.diff,"syn",entry));});
+    c.appendChild(row);
+  }
+  if(entry.antonyms.length){
+    c.appendChild(el("div","sec-title","反义词"));
+    const row=el("div","pillrow");
+    entry.antonyms.forEach(function(s){row.appendChild(pillItem(s.word,s.diff,"ant",entry));});
+    c.appendChild(row);
+  }
+  if(entry.examples.length){
+    c.appendChild(el("div","sec-title","例句"));
+    const ul=el("ul","ex-list");
+    entry.examples.forEach(function(t,i){
+      const li=el("li");
+      li.appendChild(el("span","ex-num",i===0?"①":"②"));
+      li.appendChild(document.createTextNode(t));
+      ul.appendChild(li);
+    });
+    c.appendChild(ul);
+  }
+  if(entry.confuse){
+    const box=el("div","confuse-box");
+    box.appendChild(el("span",null,"⚠ 最容易错的地方："));
+    box.appendChild(el("span",null,entry.confuse));
+    c.appendChild(box);
+  }
+  const target=entry.contrast.length?DB_API.byWord(entry.contrast[0])
+    :(entry.synonyms.length?DB_API.byWord(entry.synonyms[0].word):null);
+  const row=el("div","next-row");
+  if(target){
+    const btn=el("button","btn btn-ghost btn-small","⚖️ 对比辨析");
+    btn.type="button";
+    btn.addEventListener("click",function(){
+      S.contrast={a:entry,b:target};
+      goView("contrast");
+    });
+    row.appendChild(btn);
+  }
+  const quizBtn=el("button","btn btn-ghost btn-small","✍️ 考考我");
+  quizBtn.type="button";
+  quizBtn.title="当场写一写这个词的近义词、反义词";
+  quizBtn.addEventListener("click",function(){
+    S.quiz=null;
+    startLevel({mode:"focusFill",focusId:entry.id});
+    goView("quiz");
+  });
+  row.appendChild(quizBtn);
+  if(target||true)c.appendChild(row);
+  return c;
+}
+/* 搜索框事件：防抖 150ms + 上下键 + 回车 */
+function bindSearchInput(){
+  const input=$("#search-input");
+  let timer=null;
+  input.addEventListener("input",function(){
+    clearTimeout(timer);
+    timer=setTimeout(renderResults,150);
+  });
+  input.addEventListener("keydown",function(e){
+    if(e.key==="ArrowDown"){e.preventDefault();if(S.results.length)selectResult((S.selIndex+1)%Math.min(S.results.length,20),false);}
+    else if(e.key==="ArrowUp"){e.preventDefault();if(S.results.length)selectResult((S.selIndex-1+Math.min(S.results.length,20))%Math.min(S.results.length,20),false);}
+    else if(e.key==="Enter"){
+      e.preventDefault();
+      if(S.results[S.selIndex])openWord(S.results[S.selIndex].e.word);
+    }
+  });
+}
+
+/* =====================================================================
+ * 辨析视图（P3 精修：五维对比 + 同场景例句 + 交换 A/B）
+ * ===================================================================== */
+function contrastPairKey(a,b){
+  return CONTRAST_DB[a.word+"|"+b.word]?a.word+"|"+b.word
+    :(CONTRAST_DB[b.word+"|"+a.word]?b.word+"|"+a.word:null);
+}
+function buildContrast(a,b){
+  const key=contrastPairKey(a,b);
+  const pair=key?CONTRAST_DB[key]:null;
+  const dims={weight:null,scope:null,color:null,coll:null,pos:null};
+  if(a.color!==b.color)dims.color=["「"+a.word+"」是"+a.color+"词","「"+b.word+"」是"+b.color+"词"];
+  if(a.pos!==b.pos)dims.pos=["「"+a.word+"」是"+a.pos,"「"+b.word+"」是"+b.pos];
+  if(pair){
+    for(const k in pair.rows)dims[k]=pair.rows[k];
+  }else{
+    /* 数据不足时从 diff 文本推导（诚实标注，不编造） */
+    const diffOf=function(stem,other){
+      const s=stem.synonyms.filter(function(x){return x.word===other.word;})[0];
+      return s?s.diff:"";
+    };
+    const ta=diffOf(a,b),tb=diffOf(b,a);
+    if(/更(重|深|强|大|高)|最重|轻一?些|程度/.test(ta)||/更(重|深|强|大|高)|最重|轻一?些|程度/.test(tb))
+      dims.weight=[ta?shortDiff(ta):"—",tb?shortDiff(tb):"—"];
+    if(/多(形容|指|用于|说)|一般(说|指)|场合|范围|书面|口语/.test(ta)||/多(形容|指|用于|说)|一般(说|指)|场合|范围|书面|口语/.test(tb))
+      dims.scope=[ta?shortDiff(ta):"—",tb?shortDiff(tb):"—"];
+    if(/搭配|常说|可以说|固定|连用/.test(ta)||/搭配|常说|可以说|固定|连用/.test(tb))
+      dims.coll=[ta?shortDiff(ta):"—",tb?shortDiff(tb):"—"];
+  }
+  return {a:a,b:b,dims:dims,scene:pair?pair.scene:null,
+    pitfall:pair?pair.pitfall:(a.confuse||b.confuse||""),curated:!!pair,swap:pair?pair.swap:undefined};
+}
+function pickerSlot(label,get,set){
+  const wrap=el("div","picker");
+  const input=el("input");
+  input.type="text";input.placeholder="输入 "+label+" 词（如 寂静）";
+  input.setAttribute("aria-label","选择 "+label+" 词");
+  const e=get();
+  if(e)input.value=e.word;
+  const list=el("div","picker-list");
+  list.style.display="none";
+  function refresh(){
+    const q=DB_API.cleanQuery(input.value);
+    list.textContent="";
+    if(!q){list.style.display="none";return;}
+    DB_API.search(q).slice(0,8).forEach(function(r){
+      const b=el("button",null,r.e.word+"　"+r.e.pinyin);
+      b.type="button";
+      b.addEventListener("mousedown",function(ev){ev.preventDefault();set(r.e);list.style.display="none";renderContrast();});
+      list.appendChild(b);
+    });
+    list.style.display=list.childNodes.length?"block":"none";
+  }
+  input.addEventListener("input",refresh);
+  input.addEventListener("focus",refresh);
+  input.addEventListener("blur",function(){setTimeout(function(){list.style.display="none";},150);});
+  input.addEventListener("keydown",function(ev){
+    if(ev.key==="Enter"&&list.firstChild){ev.preventDefault();list.firstChild.dispatchEvent(new Event("mousedown"));}
+  });
+  wrap.append(input,list);
+  return wrap;
+}
+function vsWordBlock(e){
+  const w=el("div","vs-word");
+  w.appendChild(el("div","w",e?e.word:"—"));
+  w.appendChild(el("div","py",e?e.pinyin:""));
+  if(e)w.appendChild(colorPill(e.color));
+  return w;
+}
+function renderContrast(){
+  const v=$("#view-contrast");v.textContent="";
+  const wrap=el("div","contrast-wrap");
+  wrap.appendChild(el("div","view-title","⚖️ 近义词辨析"));
+  const sel=el("div","card vs-select");
+  sel.appendChild(pickerSlot("A",function(){return S.contrast.a;},function(e){S.contrast.a=e;}));
+  sel.appendChild(el("div","vs-badge","VS"));
+  sel.appendChild(pickerSlot("B",function(){return S.contrast.b;},function(e){S.contrast.b=e;}));
+  const swapBtn=el("button","btn btn-plain btn-small","⇄ 交换 A/B");
+  swapBtn.type="button";
+  swapBtn.addEventListener("click",function(){
+    const t=S.contrast.a;S.contrast.a=S.contrast.b;S.contrast.b=t;renderContrast();
+  });
+  sel.appendChild(swapBtn);
+  wrap.appendChild(sel);
+  const rec=el("div","chiprow");
+  rec.style.marginBottom="14px";
+  rec.appendChild(el("span","muted"," 高频易混： "));
+  Object.keys(CONTRAST_DB).slice(0,6).forEach(function(k){
+    const names=k.split("|");
+    const c=el("button","chip",names[0]+" vs "+names[1]);c.type="button";
+    c.addEventListener("click",function(){
+      S.contrast={a:DB_API.byWord(names[0]),b:DB_API.byWord(names[1])};renderContrast();
+    });
+    rec.appendChild(c);
+  });
+  wrap.appendChild(rec);
+  if(S.contrast.a&&S.contrast.b){
+    wrap.appendChild(renderContrastResult(buildContrast(S.contrast.a,S.contrast.b)));
+  }else{
+    const hint=el("div","card empty");
+    hint.appendChild(el("div","big","⚖️"));
+    hint.appendChild(el("div",null,"选两个词，看看它们到底差在哪。"));
+    wrap.appendChild(hint);
+  }
+  v.appendChild(wrap);
+}
+function renderContrastResult(ct){
+  const card=el("div","card");
+  const head=el("div","vs-head");
+  head.append(vsWordBlock(ct.a),el("div","vs-badge","VS"),vsWordBlock(ct.b));
+  card.appendChild(head);
+  const rows=[["weight","语义轻重"],["scope","使用范围"],["color","感情色彩"],["coll","搭配习惯"],["pos","词性差异"]];
+  const present=rows.filter(function(r){return ct.dims[r[0]];});
+  if(!present.length){
+    const b=el("div","same-banner");
+    b.textContent="这两个词基本可以互换，只有细微的语感差别。";
+    card.appendChild(b);
+    const tips=el("div","scene-box");
+    tips.appendChild(el("div","scene-ctx","各自要点"));
+    [ct.a,ct.b].forEach(function(e){
+      e.synonyms.forEach(function(s){
+        if(s.word===(e===ct.a?ct.b.word:ct.a.word)&&s.diff)
+          tips.appendChild(el("div","scene-line","· "+s.diff));
+      });
+    });
+    card.appendChild(tips);
+  }else{
+    const t=el("table","ct-table");
+    const thead=el("thead"),trh=el("tr");
+    ["维度",ct.a.word,ct.b.word].forEach(function(h,i){
+      trh.appendChild(el(i===0?"th":"th",null,h));
+    });
+    thead.appendChild(trh);t.appendChild(thead);
+    const tbody=el("tbody");
+    present.forEach(function(r){
+      const tr=el("tr");
+      tr.appendChild(el("th",null,r[1]));
+      tr.appendChild(el("td",null,ct.dims[r[0]][0]));
+      tr.appendChild(el("td",null,ct.dims[r[0]][1]));
+      tbody.appendChild(tr);
+    });
+    t.appendChild(tbody);card.appendChild(t);
+    if(!ct.curated)card.appendChild(el("div","muted","以上差异由词库标注推导；其余维度差异不明显或数据还不完整。"));
+  }
+  if(ct.scene){
+    const box=el("div","scene-box");
+    box.appendChild(el("div","scene-ctx","同一个场景（"+ct.scene.ctx+"），两种说法："));
+    const l1=el("div","scene-line");l1.appendChild(el("span","ex-num","①"));
+    markIn(l1,ct.scene.a,ct.scene.a.indexOf(ct.a.word),ct.a.word.length);
+    box.appendChild(l1);
+    const l2=el("div","scene-line");l2.appendChild(el("span","ex-num","②"));
+    markIn(l2,ct.scene.b,ct.scene.b.indexOf(ct.b.word),ct.b.word.length);
+    box.appendChild(l2);
+    const con=el("div","scene-conclusion");
+    con.textContent=(ct.scene.better?("这个场景更适合用「"+ct.scene.better+"」，因为"):"为什么")+ct.scene.why;
+    box.appendChild(con);
+    card.appendChild(box);
+  }else{
+    const box=el("div","scene-box");
+    box.appendChild(el("div","scene-ctx","例句对照（词库里还没有为这对词写同场景例句）："));
+    [ct.a,ct.b].forEach(function(e,i){
+      if(!e.examples.length)return;
+      const line=el("div","scene-line");
+      line.appendChild(el("span","ex-num",i===0?"①":"②"));
+      markIn(line,e.examples[0],e.examples[0].indexOf(e.word),e.word.length);
+      box.appendChild(line);
+    });
+    card.appendChild(box);
+  }
+  if(ct.pitfall){
+    const box=el("div","confuse-box");
+    box.appendChild(el("span",null,"⚠ 最容易错的地方："));
+    box.appendChild(el("span",null,ct.pitfall));
+    card.appendChild(box);
+  }
+  return card;
+}
+
+/* =====================================================================
+ * 闯关视图（P4 精修：即时反馈、连击、星级、错题特训）
+ * ===================================================================== */
+function renderQuiz(){
+  const v=$("#view-quiz");v.textContent="";
+  const wrap=el("div","quiz-wrap");
+  wrap.appendChild(el("div","view-title","🎯 词语闯关"));
+  if(!S.quiz)wrap.appendChild(quizStartPanel());
+  else if(S.quiz.stage==="playing")
+    wrap.appendChild(S.quiz.mode==="auto"?quizAutoPanel():quizQuestionPanel());
+  else wrap.appendChild(quizSettlementPanel());
+  v.appendChild(wrap);
+}
+function levelChips(){
+  const row=el("div","mode-row");
+  [[1,"简单 · 3-4年级"],[2,"进阶 · 4-6年级"],[3,"挑战 · 5年级以上"]].forEach(function(lv){
+    const c=el("button","chip"+(getSettings().level===lv[0]?" on":""),lv[1]);
+    c.type="button";
+    c.addEventListener("click",function(){
+      const s=getSettings();s.level=lv[0];saveSettings(s);renderQuiz();
+    });
+    row.appendChild(c);
+  });
+  return row;
+}
+function answerModeChips(){
+  const row=el("div","mode-row");
+  const cur=getSettings().answerMode||"choice";
+  [["choice","🔘 选项作答","四个选项点一个"],
+   ["fill","✍️ 填写作答","自己写出近/反义词，系统判分"],
+   ["auto","👀 自动看答案","逐词自动展示答案，适合背诵"]].forEach(function(m){
+    const c=el("button","chip"+(cur===m[0]?" on":""),m[1]);
+    c.type="button";c.title=m[2];
+    c.addEventListener("click",function(){
+      const s=getSettings();s.answerMode=m[0];saveSettings(s);renderQuiz();
+    });
+    row.appendChild(c);
+  });
+  return row;
+}
+function quizStartPanel(){
+  const card=el("div","card");
+  card.appendChild(el("div",null,"每关 5 题，答完立刻知道对不对。答错的词会自动收进错题本，连续答对 2 次就算掌握。"));
+  card.appendChild(el("div","sec-title","选择难度"));
+  card.appendChild(levelChips());
+  card.appendChild(el("div","sec-title","答题方式"));
+  card.appendChild(answerModeChips());
+  card.appendChild(el("div","sec-title","选择模式"));
+  const row=el("div","mode-row");
+  const normal=el("button","chip on","普通闯关");
+  normal.type="button";
+  row.appendChild(normal);
+  const wn=Object.keys(getWrong()).length;
+  if(wn>0){
+    const wrong=el("button","chip","🩹 错题特训（"+wn+" 个词待巩固）");
+    wrong.type="button";
+    wrong.addEventListener("click",function(){startLevel({mode:"wrong"});});
+    row.appendChild(wrong);
+  }else{
+    const wrong=el("button","chip","🩹 错题特训");
+    wrong.type="button";wrong.disabled=true;
+    wrong.title="错题本还是空的，真棒！";
+    row.appendChild(wrong);
+  }
+  card.appendChild(row);
+  card.appendChild(el("div","muted","错题特训使用选项作答；填写与自动模式在普通闯关中生效。"));
+  const today=getHistory()[todayStr()]||{};
+  card.appendChild(el("div","muted","今天已练 "+(today.answered||0)+" 题 · 已连击打卡 "+(getStreak().current||0)+" 天"));
+  const row2=el("div","next-row-center");
+  const go=el("button","btn btn-primary","🚀 开始闯关");
+  go.type="button";
+  go.addEventListener("click",function(){
+    const am=getSettings().answerMode||"choice";
+    startLevel({mode:am==="choice"?"normal":am});
+  });
+  row2.appendChild(go);card.appendChild(row2);
+  return card;
+}
+function startLevel(opts){
+  const questions=QUIZ_ENGINE.generateLevel(opts);
+  if(!questions.length){
+    toast("这一关暂时组不出题目，换个难度试试");
+    return;
+  }
+  S.quiz={stage:"playing",mode:opts.mode||"normal",level:getSettings().level,focusId:opts.focusId||null,
+    questions:questions,index:0,combo:0,maxCombo:0,correct:0,wrongList:[],locked:false,timer:null,revealed:false,paused:false};
+  renderQuiz();
+}
+function quizQuestionPanel(){
+  const q=S.quiz.questions[S.quiz.index];
+  const card=el("div","card");
+  const top=el("div","quiz-top");
+  top.appendChild(el("span",null,"第 "+(S.quiz.index+1)+"/"+S.quiz.questions.length+" 题"));
+  const prog=el("div","qprog");
+  const fill=el("div","qprog-fill");
+  fill.style.width=(S.quiz.index/S.quiz.questions.length*100)+"%";
+  prog.appendChild(fill);top.appendChild(prog);
+  if(S.quiz.combo>=2){
+    const cb=el("span","qcombo"+(S.quiz.combo>=3?" hot":""),"连对 "+S.quiz.combo+"!");
+    top.appendChild(cb);
+  }
+  const quit=el("button","btn btn-plain btn-small","退出本关");
+  quit.type="button";
+  quit.addEventListener("click",function(){
+    clearTimeout(S.quiz.timer);S.quiz=null;renderQuiz();
+  });
+  top.appendChild(quit);
+  card.appendChild(top);
+  card.appendChild(el("div","q-prompt",q.prompt));
+  if(q.kind==="swap"){
+    const sbox=el("div","q-sentence");
+    markIn(sbox,q.sentence,q.sentence.indexOf(q.fromWord),q.fromWord.length);
+    card.appendChild(sbox);
+  }
+  const isFill=q.kind==="fillSyn"||q.kind==="fillAnt";
+  if(isFill){
+    card.appendChild(el("div","muted","写完点「提交」，实在想不出来可以点「看答案」。"));
+    const frow=el("div","fill-row");
+    const inp=el("input","fill-input");
+    inp.type="text";inp.placeholder="在这里输入一个词";
+    inp.setAttribute("aria-label","填写答案");
+    inp.autocomplete="off";inp.spellcheck=false;
+    const submit=el("button","btn btn-primary","提交");
+    const peek=el("button","btn btn-plain","看答案");
+    submit.type="button";peek.type="button";
+    frow.append(inp,submit,peek);
+    card.appendChild(frow);
+    const fb=el("div");
+    card.appendChild(fb);
+    const next=el("div","next-row-center");
+    const nb=el("button","btn btn-primary","下一题 →");
+    nb.type="button";nb.style.display="none";
+    nb.addEventListener("click",function(){clearTimeout(S.quiz.timer);nextQuestion();});
+    next.appendChild(nb);card.appendChild(next);
+    S.quiz.nodes={fb:fb,nb:nb,fillInput:inp,fillSubmit:submit,fillPeek:peek,fill:isFill};
+    submit.addEventListener("click",function(){judgeFill(false);});
+    peek.addEventListener("click",function(){judgeFill(true);});
+    inp.addEventListener("keydown",function(ev){
+      if(ev.isComposing)return;
+      if(ev.key==="Enter"){ev.preventDefault();judgeFill(false);}
+    });
+    setTimeout(function(){inp.focus();},50);
+    return card;
+  }
+  const grid=el("div","optgrid");
+  q.options.forEach(function(w,i){
+    const b=el("button","opt",w);
+    b.type="button";
+    b.addEventListener("click",function(){judge(i);});
+    grid.appendChild(b);
+  });
+  card.appendChild(grid);
+  const fb=el("div");
+  card.appendChild(fb);
+  const next=el("div","next-row-center");
+  const nb=el("button","btn btn-primary","下一题 →");
+  nb.type="button";nb.style.display="none";
+  nb.addEventListener("click",function(){clearTimeout(S.quiz.timer);nextQuestion();});
+  next.appendChild(nb);card.appendChild(next);
+  S.quiz.nodes={grid:grid,fb:fb,nb:nb,fill:false};
+  return card;
+}
+/* 填写题判分：支持"看答案"（记入错题本，之后接着练） */
+function judgeFill(peeked){
+  const qz=S.quiz;
+  if(!qz||qz.locked||qz.stage!=="playing")return;
+  const q=qz.questions[qz.index];
+  let res;
+  if(peeked){
+    res={state:"peek"};
+  }else{
+    const entry=DB_API.byId(q.wordId);   /* checkFillAnswer 需要词条对象 */
+    res=QUIZ_ENGINE.checkFillAnswer(entry,q.kind,qz.nodes.fillInput.value);
+    if(res.state==="empty"){toast("先写一个词再提交哦");return;}
+    if(res.state==="self"){
+      const fb0=qz.nodes.fb;fb0.textContent="";
+      const hint=el("div","fb fb-no");
+      hint.appendChild(el("div","fb-title","「"+q.word+"」就是题目本身，换一个意思相近或相反的词试试。"));
+      fb0.appendChild(hint);
+      return;
+    }
+  }
+  qz.locked=true;
+  qz.nodes.fillInput.disabled=true;
+  qz.nodes.fillSubmit.disabled=true;
+  qz.nodes.fillPeek.disabled=true;
+  const prog=document.querySelector("#view-quiz .qprog-fill");
+  if(prog)prog.style.width=((qz.index+1)/qz.questions.length*100)+"%";
+  const fb=qz.nodes.fb;
+  fb.textContent="";
+  let mastered=false;
+  if(res.state==="ok"){
+    qz.combo++;qz.maxCombo=Math.max(qz.maxCombo,qz.combo);qz.correct++;
+    bumpTotals({answered:1,correct:1});bumpHistory("answered");bumpHistory("correct");
+    mastered=recordRightOnWrong(q.wordId);
+    const box=el("div","fb fb-ok");
+    box.appendChild(el("div","fb-title","答对了！🎉"+(qz.combo>=2?("（连对 "+qz.combo+" 题）"):"")));
+    box.appendChild(el("div","fb-body",q.explain));
+    fb.appendChild(box);
+    playCorrect();
+    if(mastered){
+      playMaster();
+      toast("🎉 「"+q.word+"」连续答对 2 次，已从错题本出库！");
+      bumpTotals({mastered:1});
+    }
+  }else{
+    qz.combo=0;
+    bumpTotals({answered:1});bumpHistory("answered");
+    recordWrong(q.wordId,q.kind);
+    qz.wrongList.push({word:q.word,answer:q.answers[0],explain:q.explain});
+    const box=el("div","fb fb-no");
+    box.appendChild(el("div","fb-title",peeked?"没关系，先记住它们：":"再看看参考答案："));
+    box.appendChild(el("div","fb-body",q.explain));
+    fb.appendChild(box);
+    if(!peeked)playWrong();
+  }
+  updateStreak();
+  checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
+  qz.nodes.nb.style.display="inline-flex";
+  qz.timer=setTimeout(function(){
+    if(S.quiz&&S.quiz.stage==="playing"&&S.quiz.mode!=="auto")nextQuestion();
+  },res.state==="ok"?1200:2500);
+}
+function judge(i){
+  const qz=S.quiz;
+  if(!qz||qz.locked||qz.stage!=="playing")return;
+  qz.locked=true;
+  const q=qz.questions[qz.index];
+  const ok=i===q.answerIndex;
+  const btns=qz.nodes.grid.querySelectorAll(".opt");
+  btns.forEach(function(b,j){
+    b.disabled=true;
+    if(j===q.answerIndex){
+      b.classList.add(j===i?"ok":"reveal");
+      if(j!==i)b.appendChild(el("span","ansmark","✓ 正确答案"));
+    }else if(j===i){
+      b.classList.add("bad");
+    }else{
+      b.classList.add("dim");
+    }
+  });
+  qz.nodes.fill.style.width=((qz.index+1)/qz.questions.length*100)+"%";
+  const fb=qz.nodes.fb;
+  fb.textContent="";
+  let mastered=false;
+  if(ok){
+    qz.combo++;qz.maxCombo=Math.max(qz.maxCombo,qz.combo);qz.correct++;
+    bumpTotals({answered:1,correct:1});bumpHistory("answered");bumpHistory("correct");
+    mastered=recordRightOnWrong(q.wordId);
+    const box=el("div","fb fb-ok");
+    box.appendChild(el("div","fb-title","答对了！🎉"+(qz.combo>=2?("（连对 "+qz.combo+" 题）"):"")));
+    box.appendChild(el("div","fb-body",q.explain));
+    fb.appendChild(box);
+    playCorrect();
+    if(mastered){
+      playMaster();
+      toast("🎉 「"+q.word+"」连续答对 2 次，已从错题本出库！");
+      bumpTotals({mastered:1});
+    }
+  }else{
+    qz.combo=0;
+    bumpTotals({answered:1});bumpHistory("answered");
+    recordWrong(q.wordId,q.kind);
+    qz.wrongList.push({word:q.word,answer:q.options[q.answerIndex],explain:q.explain});
+    const box=el("div","fb fb-no");
+    box.appendChild(el("div","fb-title","这一次没答对，看看正确的词："));
+    box.appendChild(el("div","fb-body",q.explain));
+    fb.appendChild(box);
+    playWrong();
+  }
+  updateStreak();
+  checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
+  qz.nodes.nb.style.display="inline-flex";
+  qz.timer=setTimeout(function(){
+    if(S.quiz&&S.quiz.stage==="playing")nextQuestion();
+  },ok?1200:2500);
+}
+function nextQuestion(){
+  const qz=S.quiz;
+  clearTimeout(qz.timer);
+  qz.index++;qz.locked=false;
+  if(qz.index>=qz.questions.length){
+    qz.stage="settle";
+    bumpTotals({levels:1});
+    const stars=starCount(qz.correct);
+    if(stars===3)bumpTotals({stars3:1});
+    setTotalsMax("maxCombo",qz.maxCombo);
+    checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
+  }
+  renderQuiz();
+}
+function starCount(c){return c>=5?3:c===4?2:c===3?1:0;}
+/* 自动学习模式：逐词自动展示答案，可暂停/翻页，不计入统计 */
+function quizAutoPanel(){
+  const qz=S.quiz;
+  const q=qz.questions[qz.index];
+  const card=el("div","card");
+  const top=el("div","quiz-top");
+  top.appendChild(el("span",null,"第 "+(qz.index+1)+"/"+qz.questions.length+" 词 · 自动模式"));
+  const prog=el("div","qprog");
+  const fill=el("div","qprog-fill");
+  fill.style.width=(qz.index/qz.questions.length*100)+"%";
+  prog.appendChild(fill);top.appendChild(prog);
+  const quit=el("button","btn btn-plain btn-small","退出");
+  quit.type="button";
+  quit.addEventListener("click",function(){
+    clearTimeout(qz.timer);clearTimeout(qz.timer2);S.quiz=null;renderQuiz();
+  });
+  top.appendChild(quit);
+  card.appendChild(top);
+  const wbox=el("div","auto-word");
+  wbox.appendChild(el("div","d-word",q.word));
+  wbox.appendChild(el("div","d-py",q.pinyin));
+  wbox.appendChild(el("div","muted",q.definition));
+  card.appendChild(wbox);
+  const ans=el("div","auto-answer"+(qz.revealed?" revealed":""));
+  if(q.synWords.length){
+    const l1=el("div",null);
+    l1.appendChild(el("span","ex-num","近义词 "));
+    l1.appendChild(document.createTextNode(q.synWords.join("、")));
+    ans.appendChild(l1);
+  }
+  if(q.antWords.length){
+    const l2=el("div",null);
+    l2.appendChild(el("span","ex-num","反义词 "));
+    l2.appendChild(document.createTextNode(q.antWords.join("、")));
+    ans.appendChild(l2);
+  }
+  if(q.explain)ans.appendChild(el("div","muted","⚠ "+q.explain));
+  ans.appendChild(el("div","muted","本模式只看不练，不计入统计。"));
+  card.appendChild(ans);
+  const ctrl=el("div","auto-controls");
+  const prev=el("button","btn btn-plain btn-small","‹ 上一个");
+  const pause=el("button","btn btn-ghost btn-small",qz.paused?"▶ 继续":"⏸ 暂停");
+  const next=el("button","btn btn-primary btn-small","下一个 ›");
+  prev.type="button";pause.type="button";next.type="button";
+  prev.addEventListener("click",function(){
+    clearTimeout(qz.timer);clearTimeout(qz.timer2);
+    qz.index=(qz.index-1+qz.questions.length)%qz.questions.length;
+    qz.revealed=true;qz.paused=true;renderQuiz();
+  });
+  next.addEventListener("click",function(){
+    clearTimeout(qz.timer);clearTimeout(qz.timer2);
+    autoAdvance();
+  });
+  pause.addEventListener("click",function(){
+    if(qz.paused){                    /* 继续：未揭示先揭示，已揭示定时前进 */
+      qz.paused=false;
+      if(!qz.revealed){
+        qz.timer=setTimeout(function(){revealAuto();},500);
+      }
+      qz.timer2=setTimeout(function(){autoAdvance();},qz.revealed?1800:2300);
+    }else{
+      qz.paused=true;
+      clearTimeout(qz.timer);clearTimeout(qz.timer2);
+    }
+    renderQuiz();
+  });
+  ctrl.append(prev,pause,next);
+  card.appendChild(ctrl);
+  function revealAuto(){
+    qz.revealed=true;
+    const a=document.querySelector("#view-quiz .auto-answer");
+    if(a)a.classList.add("revealed");
+  }
+  function autoAdvance(){
+    const cur=S.quiz;
+    if(!cur||cur.stage!=="playing"||cur.mode!=="auto")return;
+    cur.index++;
+    cur.revealed=false;
+    if(cur.index>=cur.questions.length){cur.stage="settle";}
+    renderQuiz();
+  }
+  if(!qz.paused){
+    if(!qz.revealed)qz.timer=setTimeout(revealAuto,1400);
+    qz.timer2=setTimeout(autoAdvance,qz.revealed?1800:4600);
+  }
+  return card;
+}
+function quizSettlementPanel(){
+  const qz=S.quiz;
+  if(qz.mode==="auto"){
+    const card=el("div","card settle");
+    card.appendChild(el("div",null,"📖 本轮自动学习了 "+qz.questions.length+" 个词，去闯关练一练吧！"));
+    const act=el("div","settle-actions");
+    const again=el("button","btn btn-primary","再来一轮");
+    again.type="button";
+    again.addEventListener("click",function(){S.quiz=null;startLevel({mode:"auto"});});
+    const home=el("button","btn btn-plain","返回");
+    home.type="button";
+    home.addEventListener("click",function(){S.quiz=null;renderQuiz();});
+    act.append(again,home);card.appendChild(act);
+    return card;
+  }
+  const stars=starCount(qz.correct);
+  const card=el("div","card settle");
+  card.appendChild(el("div",null,stars===3?"太棒了，全对通关！":stars>0?"不错的成绩！":"没关系，再来一次会更稳。"));
+  const st=el("div","stars");
+  st.textContent=stars>0?"⭐".repeat(stars):"☆☆☆";
+  card.appendChild(st);
+  const score=qz.correct*20+qz.maxCombo*5;
+  card.appendChild(el("div","score-line","答对 "+qz.correct+"/"+qz.questions.length+" · 得分 "+score+" · 最高连对 "+qz.maxCombo));
+  if(qz.wrongList.length){
+    card.appendChild(el("div","sec-title","本关需要巩固的词"));
+    const ul=el("ul","wrong-list");
+    qz.wrongList.forEach(function(w){
+      const li=el("li");
+      li.appendChild(document.createTextNode("「"+w.word+"」→ 正确的是「"+w.answer+"」。"));
+      ul.appendChild(li);
+    });
+    card.appendChild(ul);
+  }
+  const act=el("div","settle-actions");
+  const again=el("button","btn btn-primary","再来一关");
+  again.type="button";
+  again.addEventListener("click",function(){
+    const m=qz.mode;
+    S.quiz=null;
+    if(m==="focus"||m==="focusFill")startLevel({mode:m,focusId:qz.focusId});
+    else startLevel({mode:m==="wrong"?"wrong":(getSettings().answerMode==="choice"?"normal":getSettings().answerMode)});
+  });
+  const toWrong=el("button","btn btn-ghost","去错题本");
+  toWrong.type="button";
+  toWrong.addEventListener("click",function(){S.quiz=null;goView("me");});
+  const home=el("button","btn btn-plain","返回查词");
+  home.type="button";
+  home.addEventListener("click",function(){S.quiz=null;goView("search");});
+  act.append(again,toWrong,home);
+  card.appendChild(act);
+  return card;
+}
+
+/* =====================================================================
+ * 词库浏览视图（P0-F21/F22：A-Z 分组 + 字母导航 + 词性/年级/标签筛选）
+ * ===================================================================== */
+function renderBrowse(){
+  const v=$("#view-browse");v.textContent="";
+  const wrap=el("div");
+  wrap.appendChild(el("div","view-title","📚 词库（"+WORD_DB.length+" 条）"));
+  const filters=el("div","filter-row");
+  const selPos=el("select");
+  selPos.setAttribute("aria-label","按词性筛选");
+  [["","全部词性"]].concat(POS_LIST.map(function(p){return [p,p];})).forEach(function(o){
+    const op=el("option",null,o[1]);op.value=o[0];selPos.appendChild(op);
+  });
+  selPos.value=S.browse.pos;
+  const selGrade=el("select");
+  selGrade.setAttribute("aria-label","按年级筛选");
+  [["","全部年级"],["1","1-2 年级"],["2","3-4 年级"],["3","5-6 年级"],["4","7-9 年级"]].forEach(function(o){
+    const op=el("option",null,o[1]);op.value=o[0];selGrade.appendChild(op);
+  });
+  selGrade.value=S.browse.grade;
+  const selTag=el("select");
+  selTag.setAttribute("aria-label","按主题筛选");
+  [["","全部主题"]].concat(TAG_LIST.map(function(t){return [t,t];})).forEach(function(o){
+    const op=el("option",null,o[1]);op.value=o[0];selTag.appendChild(op);
+  });
+  selTag.value=S.browse.tag;
+  const count=el("span","muted");
+  filters.append(selPos,selGrade,selTag,count);
+  wrap.appendChild(filters);
+  const layout=el("div","browse-layout");
+  const list=el("div","card");list.style.padding="8px 16px";
+  const nav=el("div","letter-nav");
+  layout.append(list,nav);
+  wrap.appendChild(layout);
+  function inGrade(e,band){
+    if(!band)return true;
+    if(band==="1")return e.grade<=2;
+    if(band==="2")return e.grade>=3&&e.grade<=4;
+    if(band==="3")return e.grade>=5&&e.grade<=6;
+    return e.grade>=7;
+  }
+  function apply(){
+    list.textContent="";nav.textContent="";
+    const filtered=WORD_DB.filter(function(e){
+      return (!S.browse.pos||e.pos===S.browse.pos)
+        &&inGrade(e,S.browse.grade)
+        &&(!S.browse.tag||e.tags.indexOf(S.browse.tag)>=0);
+    });
+    count.textContent="共 "+filtered.length+" 个词";
+    if(!filtered.length){
+      list.appendChild(el("div","empty","这个筛选组合下还没有词，换个条件试试。"));
+      return;
+    }
+    const groups={};
+    filtered.forEach(function(e){
+      const c=(e.pinyin_plain[0]||"#").toUpperCase();
+      (groups[c]=groups[c]||[]).push(e);
+    });
+    const letters=Object.keys(groups).sort();
+    letters.forEach(function(ch){
+      const head=el("div","letter-head",ch);
+      head.id="lg-"+ch;
+      list.appendChild(head);
+      groups[ch].forEach(function(e){
+        const row=el("button","wrow");
+        row.type="button";
+        row.appendChild(el("span","w",e.word));
+        row.appendChild(el("span","py",e.pinyin));
+        row.appendChild(el("span","def",e.definition));
+        row.addEventListener("click",function(){
+          S.entry=e;S.navStack=[];
+          $("#search-input").value=e.word;
+          goView("search");
+        });
+        list.appendChild(row);
+      });
+      const nb=el("button",null,ch);
+      nb.type="button";
+      nb.addEventListener("click",function(){
+        const t=$("#lg-"+ch);if(t)t.scrollIntoView({block:"start"});
+      });
+      nav.appendChild(nb);
+    });
+  }
+  selPos.addEventListener("change",function(){S.browse.pos=selPos.value;apply();});
+  selGrade.addEventListener("change",function(){S.browse.grade=selGrade.value;apply();});
+  selTag.addEventListener("change",function(){S.browse.tag=selTag.value;apply();});
+  apply();
+  v.appendChild(wrap);
+}
+
+/* =====================================================================
+ * 我的视图（P5/P6：统计、打卡日历、薄弱词、错题本、生词本、报告、
+ * 徽章、词卡打印、数据导入导出、设置）
+ * ===================================================================== */
+function renderMe(){
+  const v=$("#view-me");v.textContent="";
+  const wrap=el("div","me-wrap");
+  wrap.appendChild(el("div","view-title","🏠 我的"));
+  /* --- 学习统计 --- */
+  const t=getTotals(),h=getHistory(),streak=getStreak();
+  const acc=t.answered?Math.round(t.correct/t.answered*100)+"%":"—";
+  const statCard=el("div","card");
+  const grid=el("div","statgrid");
+  [[t.searched||0,"查词次数"],[t.answered||0,"答题总数"],[acc,"总正确率"],
+   [streak.current||0,"连续打卡"],[streak.longest||0,"最长连击"],[Object.keys(getMastered()).length,"已掌握词"]].forEach(function(p){
+    const s=el("div","stat");
+    s.appendChild(el("div","num",String(p[0])));
+    s.appendChild(el("div","lbl",p[1]));
+    grid.appendChild(s);
+  });
+  statCard.appendChild(grid);
+  statCard.appendChild(el("div","sec-title","最近 30 天打卡（有练习的日子会点亮）"));
+  const cal=el("div","cal");
+  for(let i=29;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const key=todayStr(d);
+    const day=h[key]||{};
+    const cell=el("div","cal-cell"+((day.answered||0)>0?" on":"")+(i===0?" today":""));
+    cell.title=key+"：答题 "+(day.answered||0)+" 道，查词 "+(day.searched||0)+" 次";
+    cal.appendChild(cell);
+  }
+  statCard.appendChild(cal);
+  wrap.appendChild(statCard);
+  /* --- 薄弱词 --- */
+  const weak=weakWords(2).slice(0,5);
+  if(weak.length){
+    const card=el("div","card");
+    card.appendChild(el("div","sec-title","📌 薄弱词 Top"+weak.length+"（错误 ≥2 次且未掌握）"));
+    weak.forEach(function(w){
+      const row=el("div","list-row");
+      row.appendChild(el("span","w",w.entry.word));
+      row.appendChild(el("span","py",w.entry.pinyin));
+      row.appendChild(el("span","muted","错 "+w.count+" 次 · "+w.types.map(function(x){return KIND_NAME[x]||x;}).join("/")));
+      const btn=el("button","btn btn-ghost btn-small","去练这个词");
+      btn.type="button";
+      btn.addEventListener("click",function(){
+        S.quiz=null;
+        startLevel({mode:"focus",focusId:w.entry.id});
+        goView("quiz");
+      });
+      row.appendChild(btn);
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+  }
+  /* --- 错题本 --- */
+  const wrongCard=el("div","card");
+  wrongCard.appendChild(el("div","sec-title","🩹 错题本（连续答对 2 次自动出库）"));
+  const wobj=getWrong(),wids=Object.keys(wobj);
+  if(!wids.length){
+    wrongCard.appendChild(el("div","empty","错题本空空的，说明最近学得很扎实！继续保持～"));
+  }else{
+    wids.sort(function(a,b){return wobj[b].count-wobj[a].count;}).forEach(function(id){
+      const e=DB_API.byId(id),it=wobj[id];
+      if(!e)return;
+      const row=el("div","list-row");
+      const w=el("span","w",e.word);
+      w.addEventListener("click",function(){goView("search");openWord(e.word);});
+      row.appendChild(w);
+      row.appendChild(el("span","py",e.pinyin));
+      row.appendChild(el("span","ktag","错 "+it.count+" 次"));
+      row.appendChild(el("span","muted",it.wrongTypes.map(function(x){return KIND_NAME[x]||x;}).join("/")+" 题 · "+relTime(it.lastWrongAt)+"错的"));
+      const btn=el("button","btn btn-ghost btn-small","练一练");
+      btn.type="button";
+      btn.addEventListener("click",function(){
+        S.quiz=null;startLevel({mode:"focus",focusId:id});goView("quiz");
+      });
+      row.appendChild(btn);
+      wrongCard.appendChild(row);
+    });
+    const act=el("div","next-row");
+    const practice=el("button","btn btn-primary btn-small","只练错题（生成一关）");
+    practice.type="button";
+    practice.addEventListener("click",function(){S.quiz=null;startLevel({mode:"wrong"});goView("quiz");});
+    act.appendChild(practice);wrongCard.appendChild(act);
+  }
+  wrap.appendChild(wrongCard);
+  /* --- 生词本 --- */
+  const favCard=el("div","card");
+  favCard.appendChild(el("div","sec-title","⭐ 生词本"));
+  const favs=getFavorites().map(DB_API.byId).filter(Boolean);
+  if(!favs.length){
+    favCard.appendChild(el("div","empty","还没有收藏的词。查词时点右上角「收藏」，把要复习的词存起来。"));
+  }else{
+    favs.forEach(function(e){
+      const row=el("div","list-row");
+      const w=el("span","w",e.word);
+      w.addEventListener("click",function(){goView("search");openWord(e.word);});
+      row.appendChild(w);
+      row.appendChild(el("span","py",e.pinyin));
+      row.appendChild(el("span","grow muted",e.definition));
+      const rm=el("button","btn btn-plain btn-small","移出");
+      rm.type="button";
+      rm.addEventListener("click",function(){
+        toggleFav(e.id);renderMe();toast("已从生词本移出「"+e.word+"」");
+      });
+      row.appendChild(rm);
+      favCard.appendChild(row);
+    });
+    const act=el("div","next-row");
+    const fc=el("button","btn btn-primary btn-small","复习生词（闪卡模式）");
+    fc.type="button";
+    fc.addEventListener("click",function(){openFlashcards(favs);});
+    act.appendChild(fc);favCard.appendChild(act);
+  }
+  wrap.appendChild(favCard);
+  /* --- 学习报告（P6） --- */
+  const repCard=el("div","card");
+  repCard.appendChild(el("div","sec-title","📊 学习报告 · 本周"));
+  const ws=weekStats();
+  const g2=el("div","statgrid");
+  g2.style.gridTemplateColumns="repeat(3,1fr)";
+  [[ws.searched,"本周查词"],[ws.answered,"本周答题"],
+   [ws.answered?Math.round(ws.correct/ws.answered*100)+"%":"—","本周正确率"]].forEach(function(p){
+    const s=el("div","stat");
+    s.appendChild(el("div","num",String(p[0])));
+    s.appendChild(el("div","lbl",p[1]));
+    g2.appendChild(s);
+  });
+  repCard.appendChild(g2);
+  const box=el("div","report-box");
+  box.appendChild(el("div",null,"💬 给家长的一段话："));
+  box.appendChild(el("div",null,parentReport()));
+  repCard.appendChild(box);
+  const cp=el("button","btn btn-plain btn-small","复制周报");
+  cp.type="button";cp.style.marginTop="10px";
+  cp.addEventListener("click",function(){
+    const text=parentReport();
+    const done=function(){toast("已复制，可以粘贴给家长啦");};
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done,function(){fallbackCopy(text);done();});
+    }else{fallbackCopy(text);done();}
+  });
+  repCard.appendChild(cp);
+  wrap.appendChild(repCard);
+  /* --- 徽章 --- */
+  const badgeCard=el("div","card");
+  badgeCard.appendChild(el("div","sec-title","🏅 成就徽章"));
+  const have=getBadges(),bg=el("div","badge-grid");
+  BADGES.forEach(function(b){
+    const got=have.indexOf(b.id)>=0;
+    const d=el("div","badge"+(got?"":" locked"));
+    d.appendChild(el("div","bi",got?b.icon:"🔒"));
+    d.appendChild(el("div","bn",b.name));
+    d.appendChild(el("div","bd",b.desc));
+    bg.appendChild(d);
+  });
+  badgeCard.appendChild(bg);
+  wrap.appendChild(badgeCard);
+  /* --- 词卡打印（P6/F25） --- */
+  const printCard=el("div","card");
+  printCard.appendChild(el("div","sec-title","🖨️ 词卡打印（A4 一页 8 张，虚线可裁剪）"));
+  const prow=el("div","filter-row");
+  const src=el("select");
+  src.setAttribute("aria-label","选择打印范围");
+  [["fav","收藏词"],["wrong","错题词"],["tag","指定主题"]].forEach(function(o){
+    const op=el("option",null,o[1]);op.value=o[0];src.appendChild(op);
+  });
+  const tagSel=el("select");
+  tagSel.style.display="none";
+  TAG_LIST.forEach(function(tg){
+    const op=el("option",null,tg);op.value=tg;tagSel.appendChild(op);
+  });
+  const pcount=el("span","muted");
+  const pbtn=el("button","btn btn-primary btn-small","🖨️ 打印词卡");
+  pbtn.type="button";
+  prow.append(src,tagSel,pcount,pbtn);
+  printCard.appendChild(prow);
+  function printPool(){
+    if(src.value==="fav")return getFavorites().map(DB_API.byId).filter(Boolean);
+    if(src.value==="wrong")return Object.keys(getWrong()).map(DB_API.byId).filter(Boolean);
+    return DB_API.byTag(tagSel.value);
+  }
+  function refreshCount(){
+    const n=printPool().length;
+    pcount.textContent="可选 "+n+" 个词（每次最多打 16 张）";
+  }
+  src.addEventListener("change",function(){
+    tagSel.style.display=src.value==="tag"?"":"none";refreshCount();
+  });
+  tagSel.addEventListener("change",refreshCount);
+  refreshCount();
+  pbtn.addEventListener("click",function(){
+    const words=printPool().slice(0,16);
+    if(!words.length){toast("这个范围里还没有词，先收藏或练习几个吧");return;}
+    printCards(words);
+  });
+  wrap.appendChild(printCard);
+  /* --- 数据管理 --- */
+  const dataCard=el("div","card");
+  dataCard.appendChild(el("div","sec-title","💾 数据备份"));
+  const drow=el("div","next-row");
+  const ex=el("button","btn btn-ghost btn-small","导出 JSON");
+  ex.type="button";
+  ex.addEventListener("click",exportData);
+  const im=el("button","btn btn-plain btn-small","导入 JSON");
+  im.type="button";
+  im.addEventListener("click",function(){$("#import-file").click();});
+  const cl=el("button","btn btn-plain btn-small","清空数据");
+  cl.type="button";
+  cl.addEventListener("click",function(){
+    confirmModal("清空全部学习数据？","收藏、错题、统计都会被删除，此操作无法撤销。","清空",function(){
+      ["favorites","wrong","history","streak","badges","totals","recent","mastered","settings","onboarded","version"]
+        .forEach(function(k){STORE.remove(k);});
+      STORE.init();applyTheme(getSettings().theme);
+      renderMe();toast("已清空，重新开始！");
+    });
+  });
+  drow.append(ex,im,cl);
+  dataCard.appendChild(drow);
+  const file=document.createElement("input");
+  file.type="file";file.id="import-file";file.accept=".json,application/json";
+  file.style.display="none";
+  file.addEventListener("change",function(){importData(file);});
+  dataCard.appendChild(file);
+  wrap.appendChild(dataCard);
+  /* --- 设置 --- */
+  const setCard=el("div","card");
+  setCard.appendChild(el("div","sec-title","⚙️ 设置"));
+  const s=getSettings();
+  const r1=el("div","switch-row");
+  r1.appendChild(el("span",null,"🔊 答题音效"));
+  const sw1=el("button","switch"+(s.sound?" on":""));
+  sw1.type="button";sw1.setAttribute("aria-label","音效开关");
+  sw1.addEventListener("click",function(){
+    const st=getSettings();st.sound=!st.sound;saveSettings(st);
+    sw1.classList.toggle("on",st.sound);
+  });
+  r1.appendChild(sw1);setCard.appendChild(r1);
+  const r2=el("div","switch-row");
+  r2.appendChild(el("span",null,"🌙 深色模式"));
+  const sw2=el("button","switch"+(s.theme==="dark"?" on":""));
+  sw2.type="button";sw2.setAttribute("aria-label","深色模式开关");
+  sw2.addEventListener("click",function(){
+    const st=getSettings();st.theme=st.theme==="dark"?"light":"dark";saveSettings(st);
+    applyTheme(st.theme);sw2.classList.toggle("on",st.theme==="dark");
+  });
+  r2.appendChild(sw2);setCard.appendChild(r2);
+  wrap.appendChild(setCard);
+  v.appendChild(wrap);
+}
+function fallbackCopy(text){
+  const ta=document.createElement("textarea");
+  ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");}catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* ---------- 闪卡复习（P5 生词本） ---------- */
+function openFlashcards(entries){
+  let idx=0;
+  const c=el("div");
+  const head=el("div",null);
+  head.style.display="flex";head.style.justifyContent="space-between";head.style.alignItems="center";
+  head.appendChild(el("h3",null,"⭐ 生词闪卡"));
+  const closeBtn=el("button","btn btn-plain btn-small","关闭");
+  head.appendChild(closeBtn);
+  c.appendChild(head);
+  const prog=el("div","muted");
+  c.appendChild(prog);
+  const fc=el("div","fc");
+  const inner=el("div","fc-inner");
+  const front=el("div","fc-face");
+  const back=el("div","fc-face fc-back");
+  inner.append(front,back);fc.appendChild(inner);
+  c.appendChild(fc);
+  const nav=el("div","modal-actions");
+  const prev=el("button","btn btn-plain","← 上一个");
+  const next=el("button","btn btn-primary","下一个 →");
+  nav.append(prev,next);
+  c.appendChild(nav);
+  function paint(){
+    const e=entries[idx];
+    prog.textContent="第 "+(idx+1)+"/"+entries.length+" 张 · 点击卡片翻面";
+    front.textContent="";
+    front.appendChild(el("div","fc-word",e.word));
+    front.appendChild(el("div","d-py",e.pinyin));
+    front.appendChild(el("div","fc-hint","点一点，看意思"));
+    back.textContent="";
+    back.appendChild(el("div",null,e.definition));
+    if(e.synonyms.length)back.appendChild(el("div","muted","近义词："+e.synonyms.map(function(s){return s.word;}).join("、")));
+    if(e.antonyms.length)back.appendChild(el("div","muted","反义词："+e.antonyms.map(function(s){return s.word;}).join("、")));
+    fc.classList.remove("flipped");
+  }
+  fc.addEventListener("click",function(){fc.classList.toggle("flipped");});
+  prev.addEventListener("click",function(){idx=(idx-1+entries.length)%entries.length;paint();});
+  next.addEventListener("click",function(){idx=(idx+1)%entries.length;paint();});
+  paint();
+  const close=openModal(c);
+  closeBtn.addEventListener("click",close);
+}
+
+/* ---------- 词卡打印（P6/F25） ---------- */
+function printCards(words){
+  const layer=$("#print-layer");layer.textContent="";
+  for(let p=0;p<words.length;p+=8){
+    const page=el("div","print-page");
+    words.slice(p,p+8).forEach(function(e){
+      const card=el("div","print-card");
+      card.appendChild(el("div","pc-word",e.word));
+      card.appendChild(el("div","pc-py",e.pinyin));
+      const syns=e.synonyms.slice(0,2).map(function(s){return s.word;}).join("、");
+      const ants=e.antonyms.slice(0,2).map(function(s){return s.word;}).join("、");
+      card.appendChild(el("div","pc-line","近义词："+(syns||"—")));
+      card.appendChild(el("div","pc-line","反义词："+(ants||"—")));
+      if(e.examples.length)card.appendChild(el("div","pc-ex","例："+e.examples[0]));
+      card.appendChild(el("div","pc-corner","词语小侦探"));
+      page.appendChild(card);
+    });
+    layer.appendChild(page);
+  }
+  setTimeout(function(){window.print();},50);
+}
+
+/* ---------- 导出 / 导入（P0-F13） ---------- */
+function exportData(){
+  const data={
+    app:"词语小侦探",version:STORE.VERSION,exportedAt:new Date().toISOString(),
+    data:{
+      favorites:getFavorites(),wrong:getWrong(),history:getHistory(),
+      streak:getStreak(),badges:getBadges(),totals:getTotals(),
+      recent:getRecent(),mastered:getMastered(),settings:getSettings()
+    }
+  };
+  try{
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="词语小侦探备份-"+todayStr().replace(/-/g,"")+".json";
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);document.body.removeChild(a);},200);
+    toast("已导出备份文件");
+  }catch(e){toast("导出失败，请重试");}
+}
+function importData(fileInput){
+  const f=fileInput.files&&fileInput.files[0];
+  fileInput.value="";
+  if(!f)return;
+  const reader=new FileReader();
+  reader.onload=function(){
+    let obj=null;
+    try{obj=JSON.parse(reader.result);}catch(e){}
+    if(!obj||!obj.data||!Array.isArray(obj.data.favorites)){
+      toast("文件格式不对，请选择本软件导出的 JSON");
+      return;
+    }
+    confirmModal("导入备份？","导入会覆盖当前的学习数据（收藏、错题、统计），确定继续吗？","导入",function(){
+      const d=obj.data;
+      STORE.save("favorites",Array.isArray(d.favorites)?d.favorites:[]);
+      STORE.save("wrong",(d.wrong&&typeof d.wrong==="object")?d.wrong:{});
+      STORE.save("history",(d.history&&typeof d.history==="object")?d.history:{});
+      STORE.save("streak",(d.streak&&typeof d.streak==="object")?d.streak:{current:0,longest:0,lastDate:""});
+      STORE.save("badges",Array.isArray(d.badges)?d.badges:[]);
+      STORE.save("totals",(d.totals&&typeof d.totals==="object")?d.totals:{});
+      STORE.save("recent",Array.isArray(d.recent)?d.recent:[]);
+      STORE.save("mastered",(d.mastered&&typeof d.mastered==="object")?d.mastered:{});
+      STORE.save("settings",(d.settings&&typeof d.settings==="object")?d.settings:{});
+      applyTheme(getSettings().theme);
+      route();
+      toast("导入成功，数据已恢复");
+    });
+  };
+  reader.readAsText(f);
+}
+
+/* ---------- 深色主题 / 首次引导 / 启动 ---------- */
+function applyTheme(theme){
+  document.documentElement.dataset.theme=theme==="dark"?"dark":"light";
+}
+function maybeOnboard(){
+  if(STORE.load("onboarded",false))return;
+  const steps=[
+    {ico:"🔎",t:"第 1 步 · 查词",d:"输入汉字、拼音或首字母都能找到词。每个近义词旁边都有一句“怎么用”的提示。"},
+    {ico:"⚖️",t:"第 2 步 · 辨析",d:"两个词到底差在哪？五维对比表，加上同一个场景的两种说法，一眼看懂。"},
+    {ico:"🎯",t:"第 3 步 · 闯关",d:"每天 5 题一小关。答错的词自动进错题本，连续答对 2 次就算掌握。"}
+  ];
+  let i=0;
+  const c=el("div");
+  const ico=el("div","ob-ico"),tt=el("div","ob-t"),dd=el("div","ob-d");
+  const dots=el("div","ob-dots");
+  steps.forEach(function(){dots.appendChild(el("span","ob-dot"));});
+  const act=el("div","modal-actions");
+  const prev=el("button","btn btn-plain","上一步");
+  const next=el("button","btn btn-primary","下一步");
+  act.append(prev,next);
+  c.append(ico,tt,dd,dots,act);
+  function paint(){
+    ico.textContent=steps[i].ico;tt.textContent=steps[i].t;dd.textContent=steps[i].d;
+    dots.childNodes.forEach(function(d,j){d.classList.toggle("on",j===i);});
+    prev.style.visibility=i===0?"hidden":"visible";
+    next.textContent=i===steps.length-1?"开始使用 ✓":"下一步";
+  }
+  prev.addEventListener("click",function(){if(i>0){i--;paint();}});
+  next.addEventListener("click",function(){
+    if(i<steps.length-1){i++;paint();return;}
+    STORE.save("onboarded",true);
+    close();toast("准备好了！从查一个词开始吧 🔍");
+  });
+  paint();
+  const close=openModal(c);
+}
+const VIEW_RENDER={
+  search:renderSearch,contrast:renderContrast,quiz:renderQuiz,
+  browse:renderBrowse,me:renderMe
+};
+function init(){
+  STORE.init();
+  applyTheme(getSettings().theme);
+  window.addEventListener("hashchange",route);
+  if(!location.hash){
+    try{history.replaceState(null,"","#/search");}catch(e){location.hash="#/search";}
+  }
+  bindSearchInput();
+  route();
+  maybeOnboard();
+  window.selfTestQuiz=QUIZ_ENGINE.selfTestQuiz;   /* 开发者自检入口 */
+}
+try{
+  init();
+}catch(err){
+  (function(){
+    const banner=document.createElement("div");
+    banner.style.cssText="margin:40px auto;max-width:520px;padding:24px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center";
+    banner.textContent="软件启动遇到了一点小问题，请刷新页面再试一次。";
+    document.body.insertBefore(banner,document.body.firstChild);
+  })();
+}
+
+</script>
+</body>
+</html>
