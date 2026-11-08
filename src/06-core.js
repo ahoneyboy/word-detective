@@ -142,7 +142,7 @@ const STORE=(()=>{
 /* ---------- 学习数据读写（全部带默认值兜底） ---------- */
 function getSettings(){
   const s=STORE.load("settings",{});
-  return Object.assign({sound:true,theme:"light",level:1,answerMode:"choice"},(s&&typeof s==="object")?s:{});
+  return Object.assign({sound:true,theme:"light",level:1,answerMode:"choice",qCount:5},(s&&typeof s==="object")?s:{});
 }
 function saveSettings(s){STORE.save("settings",s);}
 function todayStr(d){const t=d||new Date();
@@ -534,12 +534,21 @@ const QUIZ_ENGINE=(()=>{
     }else{
       pool=stemPool(level);
     }
-    const want=opts.mode==="focus"||opts.mode==="focusFill"?3:5;
+    /* 关卡题量可设置（F08 扩展）：focus 类固定 3 题，其余按 count（默认 5） */
+    const want=opts.count||(opts.mode==="focus"||opts.mode==="focusFill"?3:5);
     let kinds;
-    if(opts.mode==="fill")kinds=shuffle(["fillSyn","fillAnt","fillSyn","fillAnt","fillSyn"]);
-    else if(opts.mode==="auto")kinds=["learn","learn","learn","learn","learn"];
-    else if(opts.mode==="focusFill")kinds=["fillSyn","fillAnt","fillSyn"];
-    else kinds=shuffle(["syn","syn","ant","ant","odd","swap"]);
+    if(opts.mode==="fill"){
+      kinds=[];for(let i=0;i<want;i++)kinds.push(i%2?"fillAnt":"fillSyn");
+      shuffle(kinds);
+    }else if(opts.mode==="auto"){
+      kinds=[];for(let i=0;i<want;i++)kinds.push("learn");
+    }else if(opts.mode==="focusFill"){
+      kinds=["fillSyn","fillAnt","fillSyn"];
+    }else{
+      const base=["syn","syn","ant","ant","odd","swap"];
+      kinds=[];while(kinds.length<want)kinds.push(...base);
+      kinds=shuffle(kinds.slice(0,want));
+    }
     const questions=[],used={};
     function tryKind(k){
       if(questions.length>=want)return;

@@ -38,9 +38,25 @@ function answerModeChips(){
   });
   return row;
 }
+function countChips(){
+  const row=el("div","mode-row");
+  const cur=getSettings().qCount||5;
+  [3,5,10,15,20].forEach(function(n){
+    const c=el("button","chip"+(cur===n?" on":""),n+" 题");
+    c.type="button";
+    c.addEventListener("click",function(){
+      const s=getSettings();s.qCount=n;saveSettings(s);renderQuiz();
+    });
+    row.appendChild(c);
+  });
+  return row;
+}
 function quizStartPanel(){
+  const qn=getSettings().qCount||5;
   const card=el("div","card");
-  card.appendChild(el("div",null,"每关 5 题，答完立刻知道对不对。答错的词会自动收进错题本，连续答对 2 次就算掌握。"));
+  card.appendChild(el("div",null,"每关 "+qn+" 题，答完立刻知道对不对。答错的词会自动收进错题本，连续答对 2 次就算掌握。"));
+  card.appendChild(el("div","sec-title","题目数量"));
+  card.appendChild(countChips());
   card.appendChild(el("div","sec-title","选择难度"));
   card.appendChild(levelChips());
   card.appendChild(el("div","sec-title","答题方式"));
@@ -77,7 +93,9 @@ function quizStartPanel(){
   return card;
 }
 function startLevel(opts){
-  const questions=QUIZ_ENGINE.generateLevel(opts);
+  const isFocus=opts.mode==="focus"||opts.mode==="focusFill";
+  const count=isFocus?3:(getSettings().qCount||5);   /* 单词/错题特训固定短关，其余用设置题量 */
+  const questions=QUIZ_ENGINE.generateLevel(Object.assign({count:count},opts));
   if(!questions.length){
     toast("这一关暂时组不出题目，换个难度试试");
     return;
@@ -282,14 +300,17 @@ function nextQuestion(){
   if(qz.index>=qz.questions.length){
     qz.stage="settle";
     bumpTotals({levels:1});
-    const stars=starCount(qz.correct);
+    const stars=starCount(qz.correct,qz.questions.length);
     if(stars===3)bumpTotals({stars3:1});
     setTotalsMax("maxCombo",qz.maxCombo);
     checkBadges().forEach(function(b){toast(b.icon+" 解锁徽章： "+b.name);});
   }
   renderQuiz();
 }
-function starCount(c){return c>=5?3:c===4?2:c===3?1:0;}
+function starCount(c,total){   /* 星级按正确率：全对3星、≥80%两星、≥60%一星 */
+  const r=c/total;
+  return r>=1?3:r>=0.8?2:r>=0.6?1:0;
+}
 /* 自动学习模式：逐词自动展示答案，可暂停/翻页，不计入统计 */
 function quizAutoPanel(){
   const qz=S.quiz;
@@ -392,7 +413,7 @@ function quizSettlementPanel(){
     act.append(again,home);card.appendChild(act);
     return card;
   }
-  const stars=starCount(qz.correct);
+  const stars=starCount(qz.correct,qz.questions.length);
   const card=el("div","card settle");
   card.appendChild(el("div",null,stars===3?"太棒了，全对通关！":stars>0?"不错的成绩！":"没关系，再来一次会更稳。"));
   const st=el("div","stars");

@@ -114,6 +114,23 @@ for(let i=0;i<60;i++){
   if(qs.length===5)full++;
   if(new Set(qs.map(q=>q.wordId)).size!==qs.length)dup++;
 }
+/* 8) 题目数量可设置（含 R7 关内不重复） */
+{
+  for(const c of [3,5,10,20]){
+    const qs=QUIZ_ENGINE.generateLevel({level:2,mode:"normal",count:c});
+    assert(qs.length===c,"count="+c+" 实际生成 "+qs.length+" 题");
+    assert(new Set(qs.map(q=>q.wordId)).size===qs.length,"count="+c+" 关内有重复词");
+  }
+  const qf=QUIZ_ENGINE.generateLevel({level:1,mode:"fill",count:7});
+  assert(qf.length===7,"fill count=7 实际生成 "+qf.length+" 题");
+  assert(qf.every(q=>q.kind==="fillSyn"||q.kind==="fillAnt"),"fill 题型混入非填写题");
+  const qa=QUIZ_ENGINE.generateLevel({level:1,mode:"auto",count:9});
+  assert(qa.length===9,"auto count=9 实际生成 "+qa.length+" 题");
+  const q5=QUIZ_ENGINE.generateLevel({level:1,mode:"normal"});   /* 不传 count 默认 5 */
+  assert(q5.length===5,"默认题量应为 5，实际 "+q5.length);
+  assert(QUIZ_ENGINE.generateLevel({mode:"focusFill",focusId:DB_API.byWord("勇敢").id}).every(q=>true),"focusFill 正常");
+}
+
 /* 汇总输出 */
 console.log("========== 自检结果 ==========");
 console.log("词条总数：",WORD_DB.length);
