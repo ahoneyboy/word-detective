@@ -442,7 +442,7 @@ function vsWordBlock(e){
   return w;
 }
 function renderContrast(){
-  const v=$("#view-contrast");v.textContent="";
+  const v=$("#body-contrast");v.textContent="";
   const wrap=el("div","contrast-wrap");
   wrap.appendChild(el("div","view-title","⚖️ 近义词辨析"));
   const sel=el("div","card vs-select");

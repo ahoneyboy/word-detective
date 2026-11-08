@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F2784B">
+<meta name="theme-color" content="#F3F5FA">
 <meta name="description" content="词语小侦探：近义词·反义词学习软件，会辨析、能训练、有反馈。纯本地离线运行。">
 <title>词语小侦探 · 近义词反义词训练器</title>
 <style>
@@ -385,6 +385,110 @@ mark{background:#FFE9A8;color:inherit;border-radius:3px;padding:0 2px}
   .d-word{font-size:26px}
   .vs-word .w{font-size:26px}
   .brand{font-size:16px}
+}
+/* ============================================================
+   UI 2.0 主题层（现代卡片式：渐变 Hero 头卡 + 大圆角卡片 + 分视图彩色主题）
+   ============================================================ */
+:root{
+  --bg:#F3F5FA; --card:#FFFFFF; --text:#262A33; --text-sub:#6E7686; --line:#E9EDF5;
+  --shadow:0 6px 18px rgba(23,43,99,.07);
+  --radius:20px;
+}
+[data-theme="dark"]{
+  --bg:#151823; --card:#1F2431; --text:#EEF1F8; --text-sub:#9AA3B6; --line:#2C3344;
+  --shadow:0 8px 22px rgba(0,0,0,.45);
+}
+.view-title{display:none}
+.card{border-radius:var(--radius);border:1px solid rgba(23,43,99,.05)}
+[data-theme="dark"] .card{border-color:rgba(255,255,255,.05)}
+.btn{border-radius:14px}
+.chip{background:var(--card);box-shadow:0 2px 8px rgba(23,43,99,.05);font-weight:700}
+.chip.on{color:var(--acc-deep,#C9481A)}
+/* —— 分视图强调色 —— */
+#view-search{--acc:#F2784B;--acc-deep:#C9481A;--acc-soft:#FDECE3}
+#view-contrast{--acc:#2FA79D;--acc-deep:#1E8278;--acc-soft:#E1F5F2}
+#view-quiz{--acc:#4E90D9;--acc-deep:#2F6FBE;--acc-soft:#E7F0FC}
+#view-browse{--acc:#3FAE72;--acc-deep:#2E8A57;--acc-soft:#E4F5EB}
+#view-me{--acc:#8A7BEF;--acc-deep:#6E5CD8;--acc-soft:#EDE9FD}
+.tab[data-v="search"]{--acc-deep:#C9481A;--acc-soft:#FDECE3}
+.tab[data-v="contrast"]{--acc-deep:#1E8278;--acc-soft:#E1F5F2}
+.tab[data-v="quiz"]{--acc-deep:#2F6FBE;--acc-soft:#E7F0FC}
+.tab[data-v="browse"]{--acc-deep:#2E8A57;--acc-soft:#E4F5EB}
+.tab[data-v="me"]{--acc-deep:#6E5CD8;--acc-soft:#EDE9FD}
+[data-theme="dark"] #view-search,[data-theme="dark"] .tab[data-v="search"]{--acc-soft:#3B2A21;--acc-deep:#FFA47E}
+[data-theme="dark"] #view-contrast,[data-theme="dark"] .tab[data-v="contrast"]{--acc-soft:#1E3633;--acc-deep:#6FD3C8}
+[data-theme="dark"] #view-quiz,[data-theme="dark"] .tab[data-v="quiz"]{--acc-soft:#1F3148;--acc-deep:#7FB3EE}
+[data-theme="dark"] #view-browse,[data-theme="dark"] .tab[data-v="browse"]{--acc-soft:#1D3527;--acc-deep:#6FD39A}
+[data-theme="dark"] #view-me,[data-theme="dark"] .tab[data-v="me"]{--acc-soft:#2B2547;--acc-deep:#B7ABFA}
+/* —— Hero 头卡 —— */
+.hero{position:relative;overflow:hidden;margin:14px 0 16px;border-radius:24px;color:#fff;
+  padding:22px;animation:fadeUp .25s ease-out;
+  background:linear-gradient(135deg,var(--h1),var(--h2));
+  box-shadow:0 10px 24px var(--hsh)}
+.hero h2{font-size:22px;font-weight:800;margin:0 0 4px;text-shadow:0 1px 3px rgba(0,0,0,.16)}
+.hero p{margin:0;font-size:14px;font-weight:600;opacity:.96;text-shadow:0 1px 3px rgba(0,0,0,.16)}
+.hero .h-ico{position:absolute;right:8px;top:2px;font-size:76px;opacity:.3;transform:rotate(10deg)}
+.hero .h-pill{display:inline-block;background:rgba(255,255,255,.24);border-radius:999px;
+  padding:3px 12px;font-size:13px;font-weight:700;margin:10px 8px 0 0}
+#view-search .hero{--h1:#F2784B;--h2:#D14E1D;--hsh:rgba(209,78,29,.32)}
+#view-contrast .hero{--h1:#38B5AA;--h2:#1E8278;--hsh:rgba(30,130,120,.32)}
+#view-quiz .hero{--h1:#5B9BE0;--h2:#2F6FBE;--hsh:rgba(47,111,190,.32)}
+#view-browse .hero{--h1:#4FBE86;--h2:#2E8A57;--hsh:rgba(46,138,87,.32)}
+#view-me .hero{--h1:#9C8CF4;--h2:#6E5CD8;--hsh:rgba(110,92,216,.32)}
+/* —— 顶栏（桌面）分段控件 —— */
+.topbar{background:transparent;border-bottom:none;padding-top:14px}
+.tabs{background:var(--card);border-radius:999px;padding:4px;box-shadow:var(--shadow);gap:2px}
+.tab{border-radius:999px}
+.tab.active{background:var(--acc-soft);color:var(--acc-deep)}
+/* —— 查词浮动搜索框 —— */
+.searchbar{margin-top:-30px;position:relative;z-index:2;border-radius:18px;
+  box-shadow:0 10px 24px rgba(23,43,99,.10);border:1px solid rgba(23,43,99,.05)}
+#search-results .daily-box{background:var(--acc-soft);border-radius:16px;padding:16px 12px}
+/* —— 组件微调 —— */
+.opt{border-radius:16px}
+.qprog{height:12px}
+#view-quiz .qprog-fill{background:linear-gradient(90deg,#5B9BE0,#38B5AA)}
+.letter-nav{border-radius:16px}
+.stat{border-radius:14px;box-shadow:0 3px 10px rgba(23,43,99,.05)}
+.statgrid .stat:nth-child(6n+1) .num{color:#C9481A}
+.statgrid .stat:nth-child(6n+2) .num{color:#1E8278}
+.statgrid .stat:nth-child(6n+3) .num{color:#2F6FBE}
+.statgrid .stat:nth-child(6n+4) .num{color:#2E8A57}
+.statgrid .stat:nth-child(6n+5) .num{color:#6E5CD8}
+.statgrid .stat:nth-child(6n+0) .num{color:#C9481A}
+[data-theme="dark"] .stat .num{color:var(--acc-deep,#FFA47E)}
+#view-me .report-box{background:var(--acc-soft);color:var(--acc-deep)}
+.badge{border-radius:16px}
+.confuse-box{border-radius:14px}
+.pillitem{border-radius:14px;background:var(--acc-soft)}
+.pillitem .pill-word{color:var(--acc-deep)}
+#view-contrast .pillitem.ant{background:var(--info-light)}
+#view-contrast .pillitem.ant .pill-word{color:var(--info)}
+.ct-table{border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.ct-table th{background:var(--acc-soft);color:var(--acc-deep)}
+.ct-table th,.ct-table td{border:none;border-bottom:1px solid var(--line)}
+.ct-table tr:last-child th,.ct-table tr:last-child td{border-bottom:none}
+.list-row .ktag{background:var(--acc-soft);color:var(--acc-deep)}
+.foot{padding-top:10px}
+/* —— 移动端底栏：悬浮白色圆角条 + 图标药丸 —— */
+@media(max-width:700px){
+  .topbar{background:transparent;padding:10px 14px 6px}
+  .tabs{position:fixed;left:10px;right:10px;bottom:calc(6px + env(safe-area-inset-bottom));
+    z-index:100;margin-left:0;gap:0;border-radius:22px;padding:6px 4px;
+    background:var(--card);border:1px solid rgba(23,43,99,.06);
+    box-shadow:0 10px 26px rgba(23,43,99,.16);overflow:visible}
+  .tab{flex:1;flex-direction:column;gap:2px;justify-content:center;min-height:52px;
+    font-size:11px;padding:2px 0;border-radius:16px}
+  .tab .t-ico{font-size:19px;line-height:1.2;padding:3px 12px;border-radius:12px;transition:background .2s}
+  .tab.active{background:transparent}
+  .tab.active .t-ico{background:var(--acc-soft)}
+  .t-txt{color:var(--text-sub);font-weight:600}
+  .tab.active .t-txt{color:var(--acc-deep);font-weight:800}
+  main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+  .hero{margin-top:8px;padding:20px 18px}
+  .hero h2{font-size:19px}
+  .hero .h-ico{font-size:58px}
+  .searchbar{margin-top:-26px}
 }
 </style>
 </head>

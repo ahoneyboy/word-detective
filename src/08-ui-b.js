@@ -2,7 +2,7 @@
  * 闯关视图（P4 精修：即时反馈、连击、星级、错题特训）
  * ===================================================================== */
 function renderQuiz(){
-  const v=$("#view-quiz");v.textContent="";
+  const v=$("#body-quiz");v.textContent="";
   const wrap=el("div","quiz-wrap");
   wrap.appendChild(el("div","view-title","🎯 词语闯关"));
   if(!S.quiz)wrap.appendChild(quizStartPanel());
@@ -455,7 +455,7 @@ function quizSettlementPanel(){
  * 词库浏览视图（P0-F21/F22：A-Z 分组 + 字母导航 + 词性/年级/标签筛选）
  * ===================================================================== */
 function renderBrowse(){
-  const v=$("#view-browse");v.textContent="";
+  const v=$("#body-browse");v.textContent="";
   const wrap=el("div");
   wrap.appendChild(el("div","view-title","📚 词库（"+WORD_DB.length+" 条）"));
   const filters=el("div","filter-row");
@@ -547,7 +547,7 @@ function renderBrowse(){
  * 徽章、词卡打印、数据导入导出、设置）
  * ===================================================================== */
 function renderMe(){
-  const v=$("#view-me");v.textContent="";
+  const v=$("#body-me");v.textContent="";
   const wrap=el("div","me-wrap");
   wrap.appendChild(el("div","view-title","🏠 我的"));
   /* --- 学习统计 --- */
@@ -964,6 +964,13 @@ function init(){
   window.addEventListener("hashchange",route);
   if(!location.hash){
     try{history.replaceState(null,"","#/search");}catch(e){location.hash="#/search";}
+  }
+  const hc=document.querySelector("#hero-word-count");
+  if(hc)hc.textContent=WORD_DB.length+" 个词条";
+  /* 窄屏缩短搜索占位文案，避免截断 */
+  if(window.matchMedia&&window.matchMedia("(max-width:480px)").matches){
+    const si=document.querySelector("#search-input");
+    if(si)si.placeholder="输入词语、拼音或首字母…";
   }
   bindSearchInput();
   route();

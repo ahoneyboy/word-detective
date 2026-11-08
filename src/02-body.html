@@ -2,29 +2,65 @@
   <header class="topbar">
     <div class="brand">🔍 词语小侦探</div>
     <nav class="tabs" aria-label="主导航">
-      <a class="tab" data-v="search" href="#/search">🔎<span>查词</span></a>
-      <a class="tab" data-v="contrast" href="#/contrast">⚖️<span>辨析</span></a>
-      <a class="tab" data-v="quiz" href="#/quiz">🎯<span>闯关</span></a>
-      <a class="tab" data-v="browse" href="#/browse">📚<span>词库</span></a>
-      <a class="tab" data-v="me" href="#/me">🏠<span>我的</span></a>
+      <a class="tab" data-v="search" href="#/search"><span class="t-ico">🔎</span><span class="t-txt">查词</span></a>
+      <a class="tab" data-v="contrast" href="#/contrast"><span class="t-ico">⚖️</span><span class="t-txt">辨析</span></a>
+      <a class="tab" data-v="quiz" href="#/quiz"><span class="t-ico">🎯</span><span class="t-txt">闯关</span></a>
+      <a class="tab" data-v="browse" href="#/browse"><span class="t-ico">📚</span><span class="t-txt">词库</span></a>
+      <a class="tab" data-v="me" href="#/me"><span class="t-ico">🏠</span><span class="t-txt">我的</span></a>
     </nav>
   </header>
   <main>
     <section id="view-search" class="view" aria-label="查词">
-      <div class="searchbar">
-        <span aria-hidden="true">🔍</span>
-        <input id="search-input" type="search" placeholder="输入词语、拼音（gaoxing）或首字母（gx）…"
-               autocomplete="off" spellcheck="false" aria-label="搜索词语">
+      <div class="hero">
+        <span class="h-ico" aria-hidden="true">🔎</span>
+        <h2>你好呀，小侦探 👋</h2>
+        <p>查一查、辨一辨，词语的秘密都藏在这里</p>
+        <span class="h-pill" id="hero-word-count">词条加载中…</span><span class="h-pill">离线可用</span>
       </div>
-      <div class="search-layout">
-        <div id="search-results" class="card" aria-label="搜索结果"></div>
-        <div id="search-detail" class="card" aria-live="polite"></div>
+      <div class="view-body" id="body-search">
+        <div class="searchbar">
+          <span aria-hidden="true">🔍</span>
+          <input id="search-input" type="search" placeholder="输入词语、拼音（gaoxing）或首字母（gx）…"
+                 autocomplete="off" spellcheck="false" aria-label="搜索词语">
+        </div>
+        <div class="search-layout">
+          <div id="search-results" class="card" aria-label="搜索结果"></div>
+          <div id="search-detail" class="card" aria-live="polite"></div>
+        </div>
       </div>
     </section>
-    <section id="view-contrast" class="view" aria-label="辨析"></section>
-    <section id="view-quiz" class="view" aria-label="闯关"></section>
-    <section id="view-browse" class="view" aria-label="词库"></section>
-    <section id="view-me" class="view" aria-label="我的"></section>
+    <section id="view-contrast" class="view" aria-label="辨析">
+      <div class="hero">
+        <span class="h-ico" aria-hidden="true">⚖️</span>
+        <h2>近义词辨析</h2>
+        <p>一眼看懂两个词到底差在哪</p>
+      </div>
+      <div class="view-body" id="body-contrast"></div>
+    </section>
+    <section id="view-quiz" class="view" aria-label="闯关">
+      <div class="hero">
+        <span class="h-ico" aria-hidden="true">🎯</span>
+        <h2>词语闯关</h2>
+        <p>每天练一练，错题自动记</p>
+      </div>
+      <div class="view-body" id="body-quiz"></div>
+    </section>
+    <section id="view-browse" class="view" aria-label="词库">
+      <div class="hero">
+        <span class="h-ico" aria-hidden="true">📚</span>
+        <h2>词语词库</h2>
+        <p>按字母顺序翻一翻，认识更多的词</p>
+      </div>
+      <div class="view-body" id="body-browse"></div>
+    </section>
+    <section id="view-me" class="view" aria-label="我的">
+      <div class="hero">
+        <span class="h-ico" aria-hidden="true">🏠</span>
+        <h2>我的学习屋</h2>
+        <p>收藏、错题和打卡记录都在这里</p>
+      </div>
+      <div class="view-body" id="body-me"></div>
+    </section>
   </main>
   <footer class="foot">词语小侦探 · 纯本地离线运行 · 学习数据只保存在这台设备上</footer>
 </div>
