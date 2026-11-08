@@ -7,15 +7,20 @@ function stripTones(s){
   return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 }
 const WORD_DB=[];
+const __seenIds={};
 function W(word,py,pos,grade,color,def,ex,syn,ant,tags,confuse,contrast){
   const syl=py.trim().split(/\s+/);
   const plain=syl.map(stripTones).join("");
   const split=t=>{const i=String(t).indexOf("|");
-    return i<0?{word:t,diff:"与主词意思相近。"}:{word:String(t).slice(0,i),diff:String(t).slice(i+1)};};
+    return i<0?{word:t,diff:""}:{word:String(t).slice(0,i),diff:String(t).slice(i+1)};};
+  /* 同音不同词（如"形式/形势"）共享全拼，id 加序号防碰撞 */
+  let id=plain;
+  if(__seenIds[id]){let n=2;while(__seenIds[id+"-"+n])n++;id=id+"-"+n;}
+  __seenIds[id]=1;
   /* 感情色彩规范为全称（褒→褒义 / 中→中性 / 贬→贬义） */
   const colorFull={"褒":"褒义","中":"中性","贬":"贬义"}[color]||color;
   const e={
-    id:plain, word:word, pinyin:py.trim(), pinyin_plain:plain,
+    id:id, word:word, pinyin:py.trim(), pinyin_plain:plain,
     initials:syl.map(s=>stripTones(s).charAt(0)).join(""),
     pos:pos, grade:grade, color:colorFull, definition:def,
     examples:ex.slice(0,2),

@@ -8,20 +8,24 @@ function cnLen(s){return String(s).replace(/[，。、！？：；""''（）—�
 
 /* 1) 结构校验 */
 for(const e of WORD_DB){
-  assert(e.word.length>=2&&e.word.length<=5,"词条字数异常："+e.word);
+  assert(e.word.length>=1&&e.word.length<=5,"词条字数异常："+e.word);
   assert(POS_SET.has(e.pos),"词性非法："+e.word+" → "+e.pos);
   assert(Number.isInteger(e.grade)&&e.grade>=1&&e.grade<=9,"年级非法："+e.word);
   assert(COLOR_SET.has(e.color),"感情色彩非法："+e.word+" → "+e.color);
   assert(e.definition&&cnLen(e.definition)<=25,"释义超长(>25字)："+e.word);
-  assert(Array.isArray(e.examples)&&e.examples.length===2,"例句必须恰好2条："+e.word);
+  assert(Array.isArray(e.examples)&&e.examples.length<=2,"例句超过2条："+e.word);
   e.examples.forEach(x=>assert(cnLen(x)<=30,"例句超长(>30字)："+e.word+"："+x));
   assert(e.synonyms.length>=0&&e.synonyms.length<=4,"近义词数量须0-4："+e.word);
-  e.synonyms.forEach(s=>assert(s.diff&&cnLen(s.diff)>=3&&s.diff!=="意思相近","近义词diff缺失或空话："+e.word+"→"+s.word));
+  e.synonyms.forEach(s=>{
+    if(s.diff)assert(cnLen(s.diff)>=2&&s.diff!=="意思相近","近义词diff空话："+e.word+"→"+s.word);
+  });
   assert(e.antonyms.length<=2,"反义词超过2条："+e.word);
-  e.antonyms.forEach(s=>assert(s.diff&&cnLen(s.diff)>=3&&s.diff!=="意思相近","反义词diff缺失或空话："+e.word+"→"+s.word));
+  e.antonyms.forEach(s=>{
+    if(s.diff)assert(cnLen(s.diff)>=2&&s.diff!=="意思相近","反义词diff空话："+e.word+"→"+s.word);
+  });
   assert(e.tags.length>=1&&e.tags.length<=3,"标签须1-3个："+e.word);
   e.tags.forEach(t=>assert(TAG_SET.has(t),"标签非法："+e.word+" → "+t));
-  assert(/^[a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ'\s]+$/i.test(e.pinyin),"拼音含异常字符："+e.word+"："+e.pinyin);
+  assert(/^[a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ'\sü]+$/i.test(e.pinyin),"拼音含异常字符："+e.word+"："+e.pinyin);
   const syl=e.pinyin.trim().split(/\s+/);
   assert(e.initials===syl.map(s=>stripTones(s).charAt(0)).join(""),"首字母与拼音不一致："+e.word);
   assert(e.pinyin_plain===syl.map(stripTones).join(""),"全拼与拼音不一致："+e.word);

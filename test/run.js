@@ -8,6 +8,6 @@ const fs=require("fs");
 const path=require("path");
 const read=f=>fs.readFileSync(path.join(__dirname, f==="test-body.js"?"":"..","src",f),"utf8");
 const src=read("03-worddb-a.js")+"\n"+read("04-worddb-b.js")+"\n"+read("04c-worddb-extra1.js")
-  +"\n"+read("04d-worddb-extra2.js")+"\n"+read("05-worddb-c.js")
+  +"\n"+read("04d-worddb-extra2.js")+"\n"+read("04e-worddb-bulk.js")+"\n"+read("05-worddb-c.js")
   +"\n"+read("06-core.js")+"\n"+fs.readFileSync(path.join(__dirname,"test-body.js"),"utf8");
 new Function(src)();   // 同一函数作用域内执行，词库与引擎对测试代码可见
