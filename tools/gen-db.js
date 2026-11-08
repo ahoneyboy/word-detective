@@ -38,7 +38,19 @@ for(const f of files){
     if(!line||line.startsWith("#"))continue;
     const parts=line.split("|");
     if(parts.length<5){skipped.push(f+" 字段不足: "+line);continue;}
-    let [word,pos,grade,color,def,syn,ant,tags]=parts.map(s=>s.trim());
+    let word,pos,grade,color,def,syn,ant,tags;
+    if(parts.length>=8){                 /* 全格式：词|词性|年级|色彩|释义|近|反|标签 */
+      [word,pos,grade,color,def,syn,ant,tags]=parts.map(s=>s.trim());
+    }else if(parts.length===7){          /* 词|词性|年级|释义|近|反|标签 */
+      [word,pos,grade,def,syn,ant,tags]=parts.map(s=>s.trim());
+      color="中";
+    }else if(parts.length===6){          /* 词|词性|释义|近|反|标签 */
+      [word,pos,def,syn,ant,tags]=parts.map(s=>s.trim());
+      grade="4";color="中";
+    }else{                               /* 词|词性|释义|近|反 */
+      [word,pos,def,syn,ant]=parts.map(s=>s.trim());
+      grade="4";color="中";tags="";
+    }
     if(seen.has(word)){skipped.push("重复跳过: "+word);continue;}
     if(word.length<1||word.length>5){skipped.push("长度异常: "+word);continue;}
     if(!POS_OK.has(pos)){skipped.push("词性非法: "+word+" "+pos);continue;}
@@ -47,7 +59,9 @@ for(const f of files){
     if(!["褒","中","贬"].includes(color)){skipped.push("色彩非法: "+word+" "+color);continue;}
     if(!def){skipped.push("无释义: "+word);continue;}
     tags=(tags||"").split(/\s+/).filter(t=>TAGS_OK.has(t));
-    if(!tags.length)tags=["生活"];
+    if(!tags.length){
+      tags=[pos==="动词"?"动作":pos==="副词"?"程度":pos==="成语"?"品质":"生活"];
+    }
     const py=PINYIN_FIX[word]||pinyin(word,{toneType:"symbol",type:"array"}).join(" ");
     const syns=(syn||"").split("/").map(s=>s.trim()).filter(Boolean).slice(0,4);
     const ants=(ant||"").split("/").map(s=>s.trim()).filter(Boolean).slice(0,2);
